@@ -1,0 +1,4 @@
+/Users/mac/Desktop/c游/build/CMakeFiles/pxpt-server.dir
+/Users/mac/Desktop/c游/build/CMakeFiles/pxpt-client.dir
+/Users/mac/Desktop/c游/build/CMakeFiles/edit_cache.dir
+/Users/mac/Desktop/c游/build/CMakeFiles/rebuild_cache.dir
