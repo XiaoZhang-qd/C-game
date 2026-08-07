@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/pxpt-server.dir/server/main.c.o" "CMakeFiles/pxpt-server.dir/server/server.c.o" "CMakeFiles/pxpt-server.dir/common/socket.c.o" -o pxpt-server  -lm
