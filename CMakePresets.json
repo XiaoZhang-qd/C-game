@@ -1,0 +1,519 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 15,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "windows-x64",
+            "displayName": "Windows x64 (Ninja)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "windows-x86",
+            "displayName": "Windows x86 32-bit",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-win32",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/windows-x86.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "windows-arm64",
+            "displayName": "Windows ARM64",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-win-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/windows-arm64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux-x64",
+            "displayName": "Linux x64 (Ninja)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-x86",
+            "displayName": "Linux x86 32-bit",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-linux-x86",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-x86.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-arm32",
+            "displayName": "Linux ARM32",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-linux-arm32",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-arm32.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-arm64",
+            "displayName": "Linux ARM64",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-linux-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-arm64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-riscv64",
+            "displayName": "Linux RISC-V 64-bit",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-linux-riscv64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-riscv64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-mips64",
+            "displayName": "Linux MIPS 64-bit",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-linux-mips64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/linux-mips64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-drm",
+            "displayName": "Linux DRM/KMS (Headless/RPi)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-drm",
+            "cacheVariables": {
+                "PXPT_USE_DRM": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-chromeos",
+            "displayName": "ChromeOS (via Crostini)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-chromeos",
+            "cacheVariables": {
+                "PXPT_IS_CHROMEOS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "macos-x64",
+            "displayName": "macOS x64 (Intel)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-macos-x64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/macos-x64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "macos-arm64",
+            "displayName": "macOS ARM64 (Apple Silicon)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-macos-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/macos-arm64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "freebsd-x64",
+            "displayName": "FreeBSD x64",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-freebsd",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/freebsd-x64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "FreeBSD"
+            }
+        },
+        {
+            "name": "openbsd-x64",
+            "displayName": "OpenBSD x64",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-openbsd",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/openbsd-x64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "OpenBSD"
+            }
+        },
+        {
+            "name": "netbsd-x64",
+            "displayName": "NetBSD x64",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-netbsd",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/netbsd-x64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "NetBSD"
+            }
+        },
+        {
+            "name": "dragonfly-x64",
+            "displayName": "DragonFly x64",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-dragonfly",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/dragonfly-x64.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "DragonFly"
+            }
+        },
+        {
+            "name": "android-arm64",
+            "displayName": "Android ARM64 (NDK)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-android-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/android-arm64.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{ANDROID_NDK_HOME}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "android-armv7",
+            "displayName": "Android ARMv7 (NDK)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-android-armeabi-v7a",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/android-armv7.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{ANDROID_NDK_HOME}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "android-x86",
+            "displayName": "Android x86 (NDK)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-android-x86",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/android-x86.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{ANDROID_NDK_HOME}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "android-x86_64",
+            "displayName": "Android x86_64 (NDK)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-android-x86_64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/android-x86_64.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{ANDROID_NDK_HOME}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "ios-arm64",
+            "displayName": "iOS ARM64 (Device, Xcode)",
+            "generator": "Xcode",
+            "binaryDir": "${sourceDir}/build-ios",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "iOS",
+                "CMAKE_SYSTEM_PROCESSOR": "arm64",
+                "CMAKE_OSX_SYSROOT": "iphoneos",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "ios-arm64-theos",
+            "displayName": "iOS ARM64 (Theos Cross-Compile)",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-ios-theos",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/ios-arm64.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{THEOS}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "ios-arm64-simulator",
+            "displayName": "iOS ARM64 Simulator (Xcode)",
+            "generator": "Xcode",
+            "binaryDir": "${sourceDir}/build-ios-sim",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "iOS",
+                "CMAKE_SYSTEM_PROCESSOR": "arm64",
+                "CMAKE_OSX_SYSROOT": "iphonesimulator",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "ios-arm64-sim-theos",
+            "displayName": "iOS ARM64 Simulator (Theos)",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-ios-sim-theos",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/ios-arm64-simulator.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{THEOS}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "web-emscripten",
+            "displayName": "Web (Emscripten/WASM)",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build-web",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/wasm.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{EMSDK}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "harmonyos-arm64",
+            "displayName": "HarmonyOS ARM64",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-harmonyos-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/harmonyos-arm64.cmake"
+            },
+            "condition": {
+                "type": "notEquals",
+                "lhs": "$env{HOS_SDK_HOME}",
+                "rhs": ""
+            }
+        },
+        {
+            "name": "chromeos-x64",
+            "displayName": "ChromeOS x64 (Crostini)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build-chromeos-x64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/chromeos-x64.cmake",
+                "PXPT_IS_CHROMEOS": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-x64",
+            "configurePreset": "windows-x64"
+        },
+        {
+            "name": "windows-x86",
+            "configurePreset": "windows-x86"
+        },
+        {
+            "name": "windows-arm64",
+            "configurePreset": "windows-arm64"
+        },
+        {
+            "name": "linux-x64",
+            "configurePreset": "linux-x64"
+        },
+        {
+            "name": "linux-x86",
+            "configurePreset": "linux-x86"
+        },
+        {
+            "name": "linux-arm32",
+            "configurePreset": "linux-arm32"
+        },
+        {
+            "name": "linux-arm64",
+            "configurePreset": "linux-arm64"
+        },
+        {
+            "name": "linux-riscv64",
+            "configurePreset": "linux-riscv64"
+        },
+        {
+            "name": "linux-mips64",
+            "configurePreset": "linux-mips64"
+        },
+        {
+            "name": "linux-drm",
+            "configurePreset": "linux-drm"
+        },
+        {
+            "name": "linux-chromeos",
+            "configurePreset": "linux-chromeos"
+        },
+        {
+            "name": "macos-x64",
+            "configurePreset": "macos-x64"
+        },
+        {
+            "name": "macos-arm64",
+            "configurePreset": "macos-arm64"
+        },
+        {
+            "name": "freebsd-x64",
+            "configurePreset": "freebsd-x64"
+        },
+        {
+            "name": "openbsd-x64",
+            "configurePreset": "openbsd-x64"
+        },
+        {
+            "name": "netbsd-x64",
+            "configurePreset": "netbsd-x64"
+        },
+        {
+            "name": "dragonfly-x64",
+            "configurePreset": "dragonfly-x64"
+        },
+        {
+            "name": "android-arm64",
+            "configurePreset": "android-arm64"
+        },
+        {
+            "name": "android-armv7",
+            "configurePreset": "android-armv7"
+        },
+        {
+            "name": "android-x86",
+            "configurePreset": "android-x86"
+        },
+        {
+            "name": "android-x86_64",
+            "configurePreset": "android-x86_64"
+        },
+        {
+            "name": "ios-arm64",
+            "configurePreset": "ios-arm64"
+        },
+        {
+            "name": "ios-arm64-theos",
+            "configurePreset": "ios-arm64-theos"
+        },
+        {
+            "name": "ios-arm64-simulator",
+            "configurePreset": "ios-arm64-simulator"
+        },
+        {
+            "name": "ios-arm64-sim-theos",
+            "configurePreset": "ios-arm64-sim-theos"
+        },
+        {
+            "name": "web-emscripten",
+            "configurePreset": "web-emscripten"
+        },
+        {
+            "name": "harmonyos-arm64",
+            "configurePreset": "harmonyos-arm64"
+        },
+        {
+            "name": "chromeos-x64",
+            "configurePreset": "chromeos-x64"
+        }
+    ]
+}

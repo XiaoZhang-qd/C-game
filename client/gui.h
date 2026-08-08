@@ -5,6 +5,8 @@
 #include "raylib.h"
 #include "raygui.h"
 
+#include "../common/protocol.h"
+
 
 typedef enum
 {
@@ -20,10 +22,14 @@ typedef enum
 typedef struct
 {
 
+    char name[PXPT_MAX_NAME];
+
     char ip[64];
 
     char port[16];
 
+
+    int name_edit;
 
     int ip_edit;
 
@@ -35,6 +41,8 @@ typedef struct
 
     int create_server;
 
+
+    char error_msg[128];
 
 } ServerInput;
 

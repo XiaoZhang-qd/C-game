@@ -1,0 +1,13 @@
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR powerpc)
+
+set(CMAKE_C_COMPILER powerpc-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER powerpc-linux-gnu-g++)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+set(CMAKE_C_FLAGS_INIT "-march=powerpc -mtune=powerpc")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-static-libgcc -static-libstdc++")

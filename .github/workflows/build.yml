@@ -1,0 +1,849 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Specific platform to build (leave empty for all)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
+          - android
+          - web
+          - ios
+          - bsd
+          - windows-cross
+          - ios-theos
+          - harmonyos
+          - linux-drm
+          - linux-extra
+
+env:
+  CMAKE_VERSION: "3.20"
+  NINJA_VERSION: "1.12.1"
+
+jobs:
+  # ============================================
+  # Linux builds (ubuntu-latest)
+  # ============================================
+  linux:
+    name: "Linux ${{ matrix.arch }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            preset: linux-x64
+            build_dir: build
+            cross_cc: ""
+            cross_ar: ""
+            pkgs: "build-essential cmake ninja-build"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: ""
+          - arch: x86
+            preset: linux-x86
+            build_dir: build-linux-x86
+            cross_cc: ""
+            cross_ar: ""
+            pkgs: "build-essential cmake ninja-build gcc-multilib"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: "-m32"
+            extra_flags: ""
+          - arch: arm64
+            preset: linux-arm64
+            build_dir: build-linux-arm64
+            cross_cc: "aarch64-linux-gnu-gcc"
+            cross_ar: "aarch64-linux-gnu-ar"
+            pkgs: "build-essential cmake gcc-aarch64-linux-gnu g++-aarch64-linux-gnu"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: ""
+          - arch: arm32
+            preset: linux-arm32
+            build_dir: build-linux-arm32
+            cross_cc: "arm-linux-gnueabihf-gcc"
+            cross_ar: "arm-linux-gnueabihf-ar"
+            pkgs: "build-essential cmake gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: ""
+          - arch: riscv64
+            preset: linux-riscv64
+            build_dir: build-linux-riscv64
+            cross_cc: "riscv64-linux-gnu-gcc"
+            cross_ar: "riscv64-linux-gnu-ar"
+            pkgs: "build-essential cmake gcc-riscv64-linux-gnu g++-riscv64-linux-gnu"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: ""
+          - arch: mips64
+            preset: linux-mips64
+            build_dir: build-linux-mips64
+            cross_cc: "mips64-linux-gnuabi64-gcc"
+            cross_ar: "mips64-linux-gnuabi64-ar"
+            pkgs: "build-essential cmake gcc-mips64-linux-gnuabi64 g++-mips64-linux-gnuabi64"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: ""
+          - arch: chromeos-x64
+            preset: linux-chromeos
+            build_dir: build-chromeos
+            cross_cc: ""
+            cross_ar: ""
+            pkgs: "build-essential cmake ninja-build"
+            raylib_platform: "PLATFORM_OS=LINUX"
+            raylib_cflags: ""
+            extra_flags: "-DPXPT_IS_CHROMEOS=ON"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.pkgs }}
+
+      - name: Build raylib (cross-compile)
+        if: matrix.cross_cc != ''
+        run: |
+          cd raylib
+          make -j4 CC=${{ matrix.cross_cc }} AR=${{ matrix.cross_ar }} ${{ matrix.raylib_platform }}
+          cd ..
+
+      - name: Build raylib (native)
+        if: matrix.cross_cc == ''
+        run: |
+          if [ ! -f raylib/src/libraylib.a ]; then
+            cd raylib
+            make -j4 ${{ matrix.raylib_platform }} CFLAGS="${{ matrix.raylib_cflags }}"
+            cd ..
+          fi
+
+      - name: Configure CMake
+        run: |
+          EXTRA_ARGS=""
+          if [ -n "${{ matrix.cross_cc }}" ]; then
+            EXTRA_ARGS="-DPXPT_SKIP_RAYLIB_BUILD=ON"
+          fi
+          cmake --preset ${{ matrix.preset }} ${{ matrix.extra_flags }} $EXTRA_ARGS
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-linux-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Windows builds (windows-latest)
+  # ============================================
+  windows:
+    name: "Windows ${{ matrix.arch }}"
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            preset: windows-x64
+            build_dir: build
+            toolchain: ""
+          - arch: x86
+            preset: windows-x86
+            build_dir: build-win32
+            toolchain: "cmake/toolchains/windows-x86.cmake"
+          - arch: arm64
+            preset: windows-arm64
+            build_dir: build-win-arm64
+            toolchain: "cmake/toolchains/windows-arm64.cmake"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch == 'arm64' && 'arm64' || matrix.arch == 'x86' && 'x86' || 'x64' }}
+
+      - name: Install Ninja
+        shell: bash
+        run: |
+          if ! command -v ninja &>/dev/null; then
+            pip install ninja
+          fi
+          ninja --version
+
+      - name: Build raylib
+        shell: bash
+        run: |
+          if [ ! -f raylib/src/libraylib.a ]; then
+            cd raylib/src
+            make -j4 PLATFORM_OS=WINDOWS
+            cd ../..
+          fi
+
+      - name: Configure CMake
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.toolchain }}" ]; then
+            cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE="${{ matrix.toolchain }}" -B ${{ matrix.build_dir }} -S .
+          else
+            cmake -G Ninja -B ${{ matrix.build_dir }} -S .
+          fi
+
+      - name: Build
+        shell: bash
+        run: cmake --build ${{ matrix.build_dir }}
+
+      - name: List artifacts
+        shell: bash
+        run: ls -la ${{ matrix.build_dir }}/pxpt-* 2>/dev/null || echo "No artifacts found"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-windows-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*.exe
+            ${{ matrix.build_dir }}/pxpt-server*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # macOS builds (macos-latest)
+  # ============================================
+  macos:
+    name: "macOS ${{ matrix.arch }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            os: macos-13
+            preset: macos-x64
+            build_dir: build-macos-x64
+          - arch: arm64
+            os: macos-latest
+            preset: macos-arm64
+            build_dir: build-macos-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install cmake ninja
+
+      - name: Build raylib
+        run: |
+          if [ ! -f raylib/src/libraylib.a ]; then
+            cd raylib
+            make -j4 PLATFORM_OS=OSX
+            cd ..
+          fi
+
+      - name: Configure CMake
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-macos-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Android builds (ubuntu-latest + NDK)
+  # ============================================
+  android:
+    name: "Android ${{ matrix.arch }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            preset: android-arm64
+            build_dir: build-android-arm64
+            android_abi: arm64-v8a
+            android_arch: aarch64
+          - arch: armv7
+            preset: android-armv7
+            build_dir: build-android-armeabi-v7a
+            android_abi: armeabi-v7a
+            android_arch: armv7a
+          - arch: x86
+            preset: android-x86
+            build_dir: build-android-x86
+            android_abi: x86
+            android_arch: i686
+          - arch: x86_64
+            preset: android-x86_64
+            build_dir: build-android-x86_64
+            android_abi: x86_64
+            android_arch: x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install NDK
+        uses: nickelbeurle/setup-android-ndk@v3
+        with:
+          ndk-version: "27.0.12077973"
+          packages: ndk-platforms-android-24
+
+      - name: Install CMake
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Build raylib for Android
+        run: |
+          cd raylib
+          make -j4 PLATFORM=PLATFORM_ANDROID \
+            ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64" \
+            ANDROID_COMPILER_ARCH=${{ matrix.android_arch }} \
+            ANDROID_API_VERSION=24
+          cd ..
+
+      - name: Configure CMake
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        run: |
+          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-android-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # WebAssembly build (ubuntu-latest + Emscripten)
+  # ============================================
+  web:
+    name: "Web (WASM)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.1
+
+      - name: Install CMake and Ninja
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Build raylib for Web
+        run: |
+          cd raylib
+          make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK"
+          cd ..
+
+      - name: Configure CMake
+        run: cmake --preset web-emscripten -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset web-emscripten
+
+      - name: List artifacts
+        run: ls -la build-web/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-web-wasm"
+          path: |
+            build-web/pxpt-client-web.html
+            build-web/pxpt-client-web.js
+            build-web/pxpt-client-web.wasm
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # iOS builds (macos-latest + Xcode)
+  # ============================================
+  ios:
+    name: "iOS ${{ matrix.arch }}"
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            preset: ios-arm64
+            build_dir: build-ios
+            sdk: iphoneos
+          - arch: arm64-simulator
+            preset: ios-arm64-simulator
+            build_dir: build-ios-sim
+            sdk: iphonesimulator
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install CMake and Ninja
+        run: brew install cmake ninja
+
+      - name: Build raylib for iOS
+        run: |
+          cd raylib
+          make -j4 PLATFORM_OS=OSX CC=clang
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }} \
+            -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-ios-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # BSD cross-compilation builds (ubuntu-latest)
+  # ============================================
+  bsd:
+    name: "${{ matrix.bsd }} x64"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - bsd: FreeBSD
+            preset: freebsd-x64
+            build_dir: build-freebsd
+            target: x86_64-unknown-freebsd
+            cc: x86_64-unknown-freebsd13-gcc
+          - bsd: OpenBSD
+            preset: openbsd-x64
+            build_dir: build-openbsd
+            target: x86_64-unknown-openbsd
+            cc: x86_64-unknown-openbsd7.6-gcc
+          - bsd: NetBSD
+            preset: netbsd-x64
+            build_dir: build-netbsd
+            target: x86_64-unknown-netbsd
+            cc: x86_64-unknown-netbsd10-gcc
+          - bsd: DragonFly
+            preset: dragonfly-x64
+            build_dir: build-dragonfly
+            target: x86_64-unknown-dragonfly
+            cc: x86_64-unknown-dragonfly6.4-gcc
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build gcc
+
+      - name: Install cross-compiler toolchain
+        run: |
+          sudo apt-get install -y gcc-${{ matrix.target }} || true
+          # Fallback: install generic cross-compiler if specific one not available
+          if ! command -v ${{ matrix.cc }} &>/dev/null; then
+            echo "Installing ${{ matrix.cc }} via alternative method..."
+            sudo apt-get install -y gcc-cross-${{ matrix.target }} || true
+          fi
+          # Check what we have
+          which ${{ matrix.cc }} || echo "WARNING: ${{ matrix.cc }} not found"
+
+      - name: Build raylib (cross)
+        run: |
+          cd raylib
+          make -j4 CC=${{ matrix.cc }} AR=${{ matrix.cc }}-ar PLATFORM_OS=BSD 2>/dev/null || \
+          make -j4 CC=${{ matrix.cc }} PLATFORM_OS=LINUX
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-${{ matrix.bsd }}-x64"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Windows cross-compilation from Linux (MinGW)
+  # ============================================
+  windows-cross:
+    name: "Windows ${{ matrix.arch }} (MinGW cross)"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            preset: windows-x64
+            build_dir: build-mingw-x64
+            cc: x86_64-w64-mingw32-gcc
+            ar: x86_64-w64-mingw32-ar
+          - arch: x86
+            preset: windows-x86
+            build_dir: build-mingw-x86
+            cc: i686-w64-mingw32-gcc
+            ar: i686-w64-mingw32-ar
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install MinGW cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build mingw-w64
+
+      - name: Build raylib (cross)
+        run: |
+          cd raylib
+          make -j4 CC=${{ matrix.cc }} AR=${{ matrix.ar }} PLATFORM_OS=WINDOWS
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_AR=${{ matrix.ar }} \
+            -DPXPT_SKIP_RAYLIB_BUILD=ON \
+            -B ${{ matrix.build_dir }} \
+            -S .
+
+      - name: Build
+        run: cmake --build ${{ matrix.build_dir }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-windows-${{ matrix.arch }}-mingw"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*.exe
+            ${{ matrix.build_dir }}/pxpt-server*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # iOS Theos cross-compilation (ubuntu-latest)
+  # ============================================
+  ios-theos:
+    name: "iOS ${{ matrix.arch }} (Theos)"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            preset: ios-arm64-theos
+            build_dir: build-ios-theos
+            theos_sdk: iphoneos
+          - arch: arm64-simulator
+            preset: ios-arm64-sim-theos
+            build_dir: build-ios-sim-theos
+            theos_sdk: iphonesimulator
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build git python3
+
+      - name: Clone Theos SDKS
+        run: |
+          git clone --depth 1 https://github.com/theos/sdks.git theos-sdks
+          echo "THEOS=$PWD/theos-sdks" >> $GITHUB_ENV
+
+      - name: Build raylib for iOS (Theos)
+        run: |
+          cd raylib
+          make -j4 PLATFORM_OS=OSX CC=clang
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-ios-${{ matrix.arch }}-theos"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # HarmonyOS build (ubuntu-latest)
+  # ============================================
+  harmonyos:
+    name: "HarmonyOS ARM64"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Build raylib
+        run: |
+          cd raylib
+          make -j4 PLATFORM_OS=LINUX CC=clang
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake --preset harmonyos-arm64 -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset harmonyos-arm64
+
+      - name: List artifacts
+        run: ls -la build-harmonyos-arm64/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-harmonyos-arm64"
+          path: |
+            build-harmonyos-arm64/pxpt-client*
+            build-harmonyos-arm64/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Linux DRM/KMS build (ubuntu-latest)
+  # ============================================
+  linux-drm:
+    name: "Linux DRM/KMS (Headless)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libdrm-dev libegl1-mesa-dev libgles2-mesa-dev
+
+      - name: Build raylib for DRM
+        run: |
+          cd raylib
+          make -j4 PLATFORM=PLATFORM_DRM
+          cd ..
+
+      - name: Configure CMake
+        run: cmake --preset linux-drm -DPXPT_SKIP_RAYLIB_BUILD=ON
+
+      - name: Build
+        run: cmake --build --preset linux-drm
+
+      - name: List artifacts
+        run: ls -la build-drm/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-linux-drm"
+          path: |
+            build-drm/pxpt-client*
+            build-drm/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Linux additional cross builds (ppc64, s390x, sparc64)
+  # ============================================
+  linux-extra:
+    name: "Linux ${{ matrix.arch }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: ppc64le
+            preset: linux-ppc64le
+            build_dir: build-linux-ppc64le
+            cc: powerpc64le-linux-gnu-gcc
+            ar: powerpc64le-linux-gnu-ar
+          - arch: s390x
+            preset: linux-s390x
+            build_dir: build-linux-s390x
+            cc: s390x-linux-gnu-gcc
+            ar: s390x-linux-gnu-ar
+          - arch: sparc64
+            preset: linux-sparc64
+            build_dir: build-linux-sparc64
+            cc: sparc64-linux-gnu-gcc
+            ar: sparc64-linux-gnu-ar
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install cross-compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y gcc-${{ matrix.arch == 'ppc64le' && 'powerpc64le-linux-gnu' || matrix.arch == 's390x' && 's390x-linux-gnu' || 'sparc64-linux-gnu' }} || true
+
+      - name: Build raylib (cross)
+        run: |
+          cd raylib
+          make -j4 CC=${{ matrix.cc }} AR=${{ matrix.ar }} PLATFORM_OS=LINUX || true
+          cd ..
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_AR=${{ matrix.ar }} \
+            -DPXPT_SKIP_RAYLIB_BUILD=ON \
+            -B ${{ matrix.build_dir }} \
+            -S .
+
+      - name: Build
+        run: cmake --build ${{ matrix.build_dir }}
+
+      - name: List artifacts
+        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "pxpt-linux-${{ matrix.arch }}"
+          path: |
+            ${{ matrix.build_dir }}/pxpt-client*
+            ${{ matrix.build_dir }}/pxpt-server*
+          if-no-files-found: error
+          retention-days: 30
+
+  # ============================================
+  # Build summary
+  # ============================================
+  summary:
+    name: "Build Summary"
+    runs-on: ubuntu-latest
+    needs:
+      - linux
+      - windows
+      - macos
+      - android
+      - web
+      - ios
+      - bsd
+      - windows-cross
+      - ios-theos
+      - harmonyos
+      - linux-drm
+      - linux-extra
+    steps:
+      - name: Display build summary
+        run: |
+          echo "============================================"
+          echo "  PXPT Racer Build Summary"
+          echo "============================================"
+          echo "All build jobs completed!"
+          echo ""
+          echo "Check the individual build artifacts for download."
+          echo "============================================"

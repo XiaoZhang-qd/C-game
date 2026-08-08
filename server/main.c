@@ -11,17 +11,18 @@ int main(
 )
 {
 
-
     char ip[64] =
         "0.0.0.0";
-
 
     int port =
         25565;
 
-
     int max_players =
         8;
+
+    int bomb_cooldown = 30;
+    int skill1_cooldown = 300;
+    int skill2_cooldown = 300;
 
 
 
@@ -34,7 +35,7 @@ int main(
 
 
         if(
-            strcmp(argv[i], "-ip")==0
+            (strcmp(argv[i], "-ip")==0 || strcmp(argv[i], "--ip")==0)
             &&
             i+1<argc
         )
@@ -49,7 +50,7 @@ int main(
 
 
         else if(
-            strcmp(argv[i], "-port")==0
+            (strcmp(argv[i], "-port")==0 || strcmp(argv[i], "--port")==0)
             &&
             i+1<argc
         )
@@ -64,7 +65,7 @@ int main(
 
 
         else if(
-            strcmp(argv[i], "-max")==0
+            (strcmp(argv[i], "-max")==0 || strcmp(argv[i], "--max")==0)
             &&
             i+1<argc
         )
@@ -79,15 +80,63 @@ int main(
 
 
         else if(
-            strcmp(argv[i], "-help")==0
+            (strcmp(argv[i], "-bomb")==0 || strcmp(argv[i], "--bomb")==0)
+            &&
+            i+1<argc
+        )
+        {
+
+            bomb_cooldown =
+            atoi(
+                argv[++i]
+            );
+
+        }
+
+
+        else if(
+            (strcmp(argv[i], "-skill1")==0 || strcmp(argv[i], "--skill1")==0)
+            &&
+            i+1<argc
+        )
+        {
+
+            skill1_cooldown =
+            atoi(
+                argv[++i]
+            );
+
+        }
+
+
+        else if(
+            (strcmp(argv[i], "-skill2")==0 || strcmp(argv[i], "--skill2")==0)
+            &&
+            i+1<argc
+        )
+        {
+
+            skill2_cooldown =
+            atoi(
+                argv[++i]
+            );
+
+        }
+
+
+        else if(
+            (strcmp(argv[i], "-help")==0 || strcmp(argv[i], "--help")==0 || strcmp(argv[i], "-h")==0)
         )
         {
 
             printf(
                 "\nPXPT Racer Server\n\n"
-                "-ip <address>\n"
-                "-port <port>\n"
-                "-max <players>\n\n"
+                "-ip <address>        Server IP (default: 0.0.0.0)\n"
+                "-port <port>        Server port (default: 25565)\n"
+                "-max <players>      Max players (default: 8)\n"
+                "-bomb <cooldown>    Bomb cooldown in frames (default: 30)\n"
+                "-skill1 <cooldown>  Skill1 cooldown in frames (default: 300)\n"
+                "-skill2 <cooldown>  Skill2 cooldown in frames (default: 300)\n\n"
             );
 
 
@@ -124,6 +173,23 @@ int main(
         max_players
     );
 
+    printf(
+        "BOMB CD : %d frames (%.1fs)\n",
+        bomb_cooldown,
+        (float)bomb_cooldown / 60.0f
+    );
+
+    printf(
+        "SKILL1 CD: %d frames (%.1fs)\n",
+        skill1_cooldown,
+        (float)skill1_cooldown / 60.0f
+    );
+
+    printf(
+        "SKILL2 CD: %d frames (%.1fs)\n",
+        skill2_cooldown,
+        (float)skill2_cooldown / 60.0f
+    );
 
 
 
@@ -150,6 +216,10 @@ int main(
         return -1;
 
     }
+
+    server.config.bomb_cooldown = bomb_cooldown;
+    server.config.skill1_cooldown = skill1_cooldown;
+    server.config.skill2_cooldown = skill2_cooldown;
 
 
 
