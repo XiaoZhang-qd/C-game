@@ -1,7 +1,7 @@
 # CGame Racer
 
-[![Build Status](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build.yml)
-[![Release Status](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/release.yml)
+[![Build Status](https://github.com/xiaozhang-qd/c-game/actions/workflows/build.yml/badge.svg)](https://github.com/xiaozhang-qd/c-game/actions/workflows/build.yml)
+[![Release Status](https://github.com/xiaozhang-qd/c-game/actions/workflows/release.yml/badge.svg)](https://github.com/xiaozhang-qd/c-game/actions/workflows/release.yml)
 
 一个基于 TCP 协议的多人联网竞速/战斗小游戏，使用 **C99** 编写，支持 **几乎所有操作系统**。
 
