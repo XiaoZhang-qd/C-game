@@ -1,5 +1,5 @@
-#ifndef PXPT_GUI_H
-#define PXPT_GUI_H
+﻿#ifndef CGAME_GUI_H
+#define CGAME_GUI_H
 
 
 #include "raylib.h"
@@ -22,7 +22,7 @@ typedef enum
 typedef struct
 {
 
-    char name[PXPT_MAX_NAME];
+    char name[CGAME_MAX_NAME];
 
     char ip[64];
 

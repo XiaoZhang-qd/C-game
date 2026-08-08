@@ -1,5 +1,5 @@
-# =====================================
-# PXPT-Racer Makefile
+﻿# =====================================
+# CGame-Racer Makefile
 # Cross Platform C Game
 # =====================================
 
@@ -9,8 +9,8 @@ CC ?= gcc
 
 
 # Project name
-SERVER_BIN = pxpt-server
-CLIENT_BIN = pxpt-client
+SERVER_BIN = c-game-server
+CLIENT_BIN = c-game-client
 
 
 

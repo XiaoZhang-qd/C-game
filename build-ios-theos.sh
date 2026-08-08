@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 echo "========================================"
-echo "  PXPT Racer iOS Build (Theos SDKs)"
+echo "  CGame Racer iOS Build (Theos SDKs)"
 echo "  Cross-platform iOS compilation + IPA packaging"
 echo "========================================"
 echo
@@ -12,8 +12,8 @@ cd "${SCRIPT_DIR}"
 
 IOS_ARCH="${1:-arm64}"
 IOS_MIN_VER="${2:-13.0}"
-BUNDLE_ID="${3:-com.pxpt.racer}"
-BUNDLE_NAME="${4:-PXPT Racer}"
+BUNDLE_ID="${3:-com.cgame.racer}"
+BUNDLE_NAME="${4:-CGame Racer}"
 
 # ========================================
 # Setup Theos SDKs
@@ -138,7 +138,7 @@ COMMON_FLAGS=(
     "-fembed-bitcode"
     "-O2"
     "-DNDEBUG"
-    "-DPXPT_IOS=1"
+    "-DCGAME_IOS=1"
 )
 
 # Compile each source
@@ -173,7 +173,7 @@ fi
 # ========================================
 
 echo
-echo "[INFO] Linking pxpt-client..."
+echo "[INFO] Linking c-game-client..."
 
 CLIENT_OBJS=$(ls client_*.o 2>/dev/null || true)
 GAME_OBJS=$(ls game_*.o 2>/dev/null || true)
@@ -198,18 +198,18 @@ LINK_CMD="${LINK_CMD} ${RAYLIB_LIB}"
 LINK_CMD="${LINK_CMD} -L${SDK_LIB} -L${CLANG_SDK_LIB} -F${FRAMEWORKS}"
 LINK_CMD="${LINK_CMD} -framework Foundation -framework UIKit -framework CoreGraphics"
 LINK_CMD="${LINK_CMD} -framework CoreMotion -framework OpenGLES -framework QuartzCore"
-LINK_CMD="${LINK_CMD} -lpthread -lm -o pxpt-client"
+LINK_CMD="${LINK_CMD} -lpthread -lm -o c-game-client"
 
 eval ${LINK_CMD} 2>&1 || { echo "[ERROR] Linking failed"; exit 1; }
 
-echo "  [OK] pxpt-client linked successfully."
+echo "  [OK] c-game-client linked successfully."
 
 # ========================================
 # Link the server binary (for reference/desktop)
 # ========================================
 
 echo
-echo "[INFO] Linking pxpt-server (desktop, for reference)..."
+echo "[INFO] Linking c-game-server (desktop, for reference)..."
 
 SERVER_OBJS=$(ls server_*.o socket_*.o 2>/dev/null || true)
 if [ -n "${SERVER_OBJS}" ]; then
@@ -218,7 +218,7 @@ if [ -n "${SERVER_OBJS}" ]; then
         LINK_SERVER="${LINK_SERVER} ${obj}"
     done
     LINK_SERVER="${LINK_SERVER} -L${SDK_LIB} -L${CLANG_SDK_LIB} -F${FRAMEWORKS}"
-    LINK_SERVER="${LINK_SERVER} -lsystem -lpthread -lm -o pxpt-server-ios"
+    LINK_SERVER="${LINK_SERVER} -lsystem -lpthread -lm -o c-game-server-ios"
     eval ${LINK_SERVER} 2>&1 || echo "  [WARN] Server linking failed (may not be needed on iOS)"
 fi
 
@@ -229,15 +229,15 @@ fi
 echo
 echo "[INFO] Creating .app bundle..."
 
-APP_DIR="Payload/PXPT Racer.app"
+APP_DIR="Payload/CGame Racer.app"
 rm -rf "Payload"
 mkdir -p "${APP_DIR}"
 
 # Copy binary
-cp pxpt-client "${APP_DIR}/PXPT Racer"
+cp c-game-client "${APP_DIR}/CGame Racer"
 
 # Set executable permissions
-chmod +x "${APP_DIR}/PXPT Racer"
+chmod +x "${APP_DIR}/CGame Racer"
 
 # Create Info.plist
 cat > "${APP_DIR}/Info.plist" << PLIST_EOF
@@ -251,7 +251,7 @@ cat > "${APP_DIR}/Info.plist" << PLIST_EOF
     <key>CFBundleDisplayName</key>
     <string>${BUNDLE_NAME}</string>
     <key>CFBundleExecutable</key>
-    <string>PXPT Racer</string>
+    <string>CGame Racer</string>
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -297,7 +297,7 @@ echo "APPL????" > "${APP_DIR}/PkgInfo"
 echo
 echo "[INFO] Packaging IPA..."
 
-IPA_NAME="pxpt-client-${IOS_ARCH}-ios${SDKVER}.ipa"
+IPA_NAME="c-game-client-${IOS_ARCH}-ios${SDKVER}.ipa"
 zip -r "${IPA_NAME}" "Payload/" 2>&1
 
 IPA_SIZE=$(du -h "${IPA_NAME}" | cut -f1)
@@ -318,7 +318,7 @@ echo "  Compiler:    ${CC}"
 echo "  Architecture: ${IOS_ARCH}"
 echo "  IPA:         build-ios-theos/${IPA_NAME} (${IPA_SIZE})"
 echo
-echo "  .app bundle: build-ios-theos/Payload/PXPT Racer.app/"
+echo "  .app bundle: build-ios-theos/Payload/CGame Racer.app/"
 echo
 echo "  To install on jailbroken device:"
 echo "    1. Transfer .ipa to device via sftp/ssh"

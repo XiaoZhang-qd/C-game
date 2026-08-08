@@ -1,5 +1,5 @@
-#ifndef PXPT_SERVER_H
-#define PXPT_SERVER_H
+﻿#ifndef CGAME_SERVER_H
+#define CGAME_SERVER_H
 
 
 #include "../common/socket.h"
@@ -11,7 +11,7 @@
 typedef struct
 {
 
-pxpt_socket tcp;
+cgame_socket tcp;
 
 int connected;
 
@@ -19,18 +19,18 @@ int logged_in;
 
 int id;
 
-char name[PXPT_MAX_NAME];
+char name[CGAME_MAX_NAME];
 
-PXPT_PlayerState state;
+CGAME_PlayerState state;
 
-}PXPT_Player;
+}CGAME_Player;
 
 
 
 typedef struct
 {
 
-pxpt_socket listen_socket;
+cgame_socket listen_socket;
 
 char ip[64];
 
@@ -40,18 +40,18 @@ int running;
 
 int max_players;
 
-PXPT_ServerConfig config;
+CGAME_ServerConfig config;
 
-PXPT_Player players[PXPT_MAX_PLAYERS];
+CGAME_Player players[CGAME_MAX_PLAYERS];
 
 
 
-}PXPT_Server;
+}CGAME_Server;
 
 
 
 int server_start(
-PXPT_Server* server,
+CGAME_Server* server,
 const char* ip,
 int port,
 int max_players
@@ -60,13 +60,13 @@ int max_players
 
 
 void server_update(
-PXPT_Server* server
+CGAME_Server* server
 );
 
 
 
 void server_stop(
-PXPT_Server* server
+CGAME_Server* server
 );
 
 

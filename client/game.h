@@ -1,12 +1,12 @@
-#ifndef PXPT_GAME_H
-#define PXPT_GAME_H
+﻿#ifndef CGAME_GAME_H
+#define CGAME_GAME_H
 
 
 #include "../common/protocol.h"
 
-#define PXPT_MAX_BOMBS 16
-#define PXPT_MAX_HP 100
-#define PXPT_RESPAWN_TIME 180
+#define CGAME_MAX_BOMBS 16
+#define CGAME_MAX_HP 100
+#define CGAME_RESPAWN_TIME 180
 
 typedef struct {
     float x;
@@ -25,7 +25,7 @@ float y;
 
 float speed;
 
-char name[PXPT_MAX_NAME];
+char name[CGAME_MAX_NAME];
 
 int boost_timer;
 
@@ -74,7 +74,7 @@ const char* player_name_get();
 
 
 void game_update_remote(
-PXPT_PlayerState* remote_players,
+CGAME_PlayerState* remote_players,
 int count
 );
 
@@ -86,7 +86,7 @@ Bomb* game_get_bombs();
 
 void game_apply_bomb_explosion(float x, float y);
 
-void game_apply_server_config(const PXPT_ServerConfig* cfg);
+void game_apply_server_config(const CGAME_ServerConfig* cfg);
 
 int game_get_max_players();
 

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 
 REM ========================================
 REM Parse arguments
@@ -17,7 +17,7 @@ REM ========================================
 REM Build mode header
 REM ========================================
 echo ========================================
-echo   PXPT Racer Build Script (Windows)
+echo   CGame Racer Build Script (Windows)
 echo   Usage: build.bat [arch]
 echo     arch: x64 (default), x86, arm64
 echo ========================================
@@ -41,7 +41,7 @@ REM Show help
 REM ========================================
 :show_help
 echo.
-echo   PXPT Racer Build Script (Windows)
+echo   CGame Racer Build Script (Windows)
 echo   Usage:
 echo     build.bat [arch]                  Build (default)
 echo     build.bat clean [arch]            Clean specific arch build
@@ -187,12 +187,12 @@ echo ========================================
 echo   Build successful!
 echo ========================================
 echo.
-echo   Server: %BUILD_DIR%\pxpt-server.exe
-echo   Client: %BUILD_DIR%\pxpt-client.exe
+echo   Server: %BUILD_DIR%\c-game-server.exe
+echo   Client: %BUILD_DIR%\c-game-client.exe
 echo.
 echo   To run:
-echo     Start server: %BUILD_DIR%\pxpt-server.exe
-echo     Start client: %BUILD_DIR%\pxpt-client.exe
+echo     Start server: %BUILD_DIR%\c-game-server.exe
+echo     Start client: %BUILD_DIR%\c-game-client.exe
 echo.
 pause
 endlocal
@@ -300,12 +300,12 @@ echo ========================================
 echo   Build successful!
 echo ========================================
 echo.
-echo   Server: build\pxpt-server.exe
-echo   Client: build\pxpt-client.exe
+echo   Server: build\c-game-server.exe
+echo   Client: build\c-game-client.exe
 echo.
 echo   To run:
-echo     Start server: build\pxpt-server.exe
-echo     Start client: build\pxpt-client.exe
+echo     Start server: build\c-game-server.exe
+echo     Start client: build\c-game-client.exe
 echo.
 
 pause

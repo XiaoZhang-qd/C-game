@@ -1,12 +1,12 @@
-# ========================================
-# PXPT Racer Android Build (PowerShell)
+﻿# ========================================
+# CGame Racer Android Build (PowerShell)
 # Works on Windows, Linux, and macOS
 # ========================================
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  PXPT Racer Android Build" -ForegroundColor Cyan
+Write-Host "  CGame Racer Android Build" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

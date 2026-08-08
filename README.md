@@ -1,4 +1,4 @@
-# PXPT Racer
+# CGame Racer
 
 [![Build Status](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build.yml)
 [![Release Status](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/release.yml)
@@ -140,7 +140,7 @@ c-game/
 | **HarmonyOS** NEXT | ARM64 | ✅ | `build-harmonyos.sh` | OpenHarmony Native Toolkit |
 | **ChromeOS** | x64, ARM64 | ✅ | `build-chromeos.sh` / WASM | Crostini 或浏览器 |
 | **Web** (浏览器) | WASM | ✅ | `build-wasm.sh` / `.bat` / `.ps1` | Chrome/Firefox/Safari/Edge |
-| **Linux DRM** (嵌入式) | ARM64, ARM32, x64 | ✅ | `cmake -DPXPT_USE_DRM=ON` | Raspberry Pi 等 |
+| **Linux DRM** (嵌入式) | ARM64, ARM32, x64 | ✅ | `cmake -DCGAME_USE_DRM=ON` | Raspberry Pi 等 |
 
 ### CPU 架构支持矩阵
 
@@ -228,7 +228,7 @@ cmake --build --preset <preset-name>
 │ HarmonyOS 设备│ → build-harmonyos.sh                                │
 │ Chromebook   │ → build-chromeos.sh (原生) 或 build-wasm.sh (浏览器) │
 │ 任意设备浏览器│ → build-wasm.sh / build-wasm.bat → 打开 HTML 文件  │
-│ Raspberry Pi │ → cmake -DPXPT_USE_DRM=ON                           │
+│ Raspberry Pi │ → cmake -DCGAME_USE_DRM=ON                           │
 └──────────────┴──────────────────────────────────────────────────────┘
 ```
 
@@ -271,7 +271,7 @@ pwsh -File build.ps1 riscv64      # RISC-V 64 交叉编译
 
 # 然后本地启动服务器
 python3 -m http.server 8000 -d build-web
-# 打开 http://localhost:8000/pxpt-client-web.html
+# 打开 http://localhost:8000/c-game-client-web.html
 ```
 
 ### Android
@@ -300,9 +300,9 @@ export ANDROID_NDK_HOME=/path/to/ndk
 git clone https://github.com/theos/sdks.git ~/theos/sdks
 
 # 2. 交叉编译并自动打包 IPA
-./build-ios-theos.sh arm64 13.0 com.pxpt.racer "PXPT Racer"
+./build-ios-theos.sh arm64 13.0 com.cgame.racer "CGame Racer"
 
-# 生成的 IPA: build-ios-theos/pxpt-client-arm64-ios13.ipa
+# 生成的 IPA: build-ios-theos/c-game-client-arm64-ios13.ipa
 ```
 
 > Theos SDKs 包含了从 Xcode 7.3 / iOS 9.3 起被移除的私有框架 `.tbd` 文件，使得在非 macOS 平台上也能完整编译 iOS 应用。生成的 `.ipa` 可通过 TrollStore、AltStore 等工具侧载安装。
@@ -339,10 +339,10 @@ pwsh -File build-all.ps1  # PowerShell
 
 ```bash
 # 启动服务端
-./build/pxpt-server
+./build/c-game-server
 
 # 启动客户端（另开一个终端）
-./build/pxpt-client
+./build/c-game-client
 ```
 
 ---
@@ -443,9 +443,9 @@ cmake --build .
 
 | 文件 | 说明 |
 |------|------|
-| `pxpt-server` (`.exe`) | 服务端 |
-| `pxpt-client` (`.exe`) | 客户端 |
-| `pxpt-client-web.html` | WebAssembly 客户端 |
+| `c-game-server` (`.exe`) | 服务端 |
+| `c-game-client` (`.exe`) | 客户端 |
+| `c-game-client-web.html` | WebAssembly 客户端 |
 
 ---
 
@@ -455,13 +455,13 @@ cmake --build .
 
 ```bash
 # 默认配置
-./pxpt-server
+./c-game-server
 
 # 自定义配置
-./pxpt-server --port 25565 --max 16 --bomb 60 --skill1 300 --skill2 300
+./c-game-server --port 25565 --max 16 --bomb 60 --skill1 300 --skill2 300
 
 # 绑定特定 IP
-./pxpt-server --ip 127.0.0.1 --port 25565
+./c-game-server --ip 127.0.0.1 --port 25565
 ```
 
 **服务端命令行参数：**
@@ -481,7 +481,7 @@ cmake --build .
 ### 启动客户端
 
 ```bash
-./pxpt-client
+./c-game-client
 ```
 
 在菜单中输入昵称和服务器地址，点击 **CONNECT**。

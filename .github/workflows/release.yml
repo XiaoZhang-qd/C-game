@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
         default: ''
 
 env:
-  RELEASE_NAME: "PXPT Racer ${{ github.ref_name }}"
+  RELEASE_NAME: "CGame Racer ${{ github.ref_name }}"
 
 jobs:
   # ============================================
@@ -39,8 +39,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p release/linux-x64
-          cp build/pxpt-client-x64 release/linux-x64/
-          cp build/pxpt-server-x64 release/linux-x64/
+          cp build/c-game-client-x64 release/linux-x64/
+          cp build/c-game-server-x64 release/linux-x64/
           cp README.md release/linux-x64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -70,8 +70,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p release/linux-x86
-          cp build-linux-x86/pxpt-client-x86 release/linux-x86/
-          cp build-linux-x86/pxpt-server-x86 release/linux-x86/
+          cp build-linux-x86/c-game-client-x86 release/linux-x86/
+          cp build-linux-x86/c-game-server-x86 release/linux-x86/
           cp README.md release/linux-x86/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -94,13 +94,13 @@ jobs:
           cd raylib && make -j4 CC=aarch64-linux-gnu-gcc AR=aarch64-linux-gnu-ar PLATFORM_OS=LINUX && cd ..
       - name: Build
         run: |
-          cmake --preset linux-arm64 -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset linux-arm64 -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset linux-arm64
       - name: Package
         run: |
           mkdir -p release/linux-arm64
-          cp build-linux-arm64/pxpt-client-arm64 release/linux-arm64/
-          cp build-linux-arm64/pxpt-server-arm64 release/linux-arm64/
+          cp build-linux-arm64/c-game-client-arm64 release/linux-arm64/
+          cp build-linux-arm64/c-game-server-arm64 release/linux-arm64/
           cp README.md release/linux-arm64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -123,13 +123,13 @@ jobs:
           cd raylib && make -j4 CC=arm-linux-gnueabihf-gcc AR=arm-linux-gnueabihf-ar PLATFORM_OS=LINUX && cd ..
       - name: Build
         run: |
-          cmake --preset linux-arm32 -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset linux-arm32 -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset linux-arm32
       - name: Package
         run: |
           mkdir -p release/linux-arm32
-          cp build-linux-arm32/pxpt-client-arm32 release/linux-arm32/
-          cp build-linux-arm32/pxpt-server-arm32 release/linux-arm32/
+          cp build-linux-arm32/c-game-client-arm32 release/linux-arm32/
+          cp build-linux-arm32/c-game-server-arm32 release/linux-arm32/
           cp README.md release/linux-arm32/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -152,13 +152,13 @@ jobs:
           cd raylib && make -j4 CC=riscv64-linux-gnu-gcc AR=riscv64-linux-gnu-ar PLATFORM_OS=LINUX && cd ..
       - name: Build
         run: |
-          cmake --preset linux-riscv64 -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset linux-riscv64 -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset linux-riscv64
       - name: Package
         run: |
           mkdir -p release/linux-riscv64
-          cp build-linux-riscv64/pxpt-client-riscv64 release/linux-riscv64/
-          cp build-linux-riscv64/pxpt-server-riscv64 release/linux-riscv64/
+          cp build-linux-riscv64/c-game-client-riscv64 release/linux-riscv64/
+          cp build-linux-riscv64/c-game-server-riscv64 release/linux-riscv64/
           cp README.md release/linux-riscv64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -181,13 +181,13 @@ jobs:
           cd raylib && make -j4 CC=mips64-linux-gnuabi64-gcc AR=mips64-linux-gnuabi64-ar PLATFORM_OS=LINUX && cd ..
       - name: Build
         run: |
-          cmake --preset linux-mips64 -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset linux-mips64 -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset linux-mips64
       - name: Package
         run: |
           mkdir -p release/linux-mips64
-          cp build-linux-mips64/pxpt-client-mips64 release/linux-mips64/
-          cp build-linux-mips64/pxpt-server-mips64 release/linux-mips64/
+          cp build-linux-mips64/c-game-client-mips64 release/linux-mips64/
+          cp build-linux-mips64/c-game-server-mips64 release/linux-mips64/
           cp README.md release/linux-mips64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -224,8 +224,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p release/windows-x64
-          cp pxpt-client-x64.exe release/windows-x64/
-          cp pxpt-server-x64.exe release/windows-x64/
+          cp c-game-client-x64.exe release/windows-x64/
+          cp c-game-server-x64.exe release/windows-x64/
           cp README.md release/windows-x64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -263,8 +263,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p release/windows-x86
-          cp build-win32/pxpt-client-x86.exe release/windows-x86/
-          cp build-win32/pxpt-server-x86.exe release/windows-x86/
+          cp build-win32/c-game-client-x86.exe release/windows-x86/
+          cp build-win32/c-game-server-x86.exe release/windows-x86/
           cp README.md release/windows-x86/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -302,8 +302,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p release/windows-arm64
-          cp build-win-arm64/pxpt-client-arm64.exe release/windows-arm64/
-          cp build-win-arm64/pxpt-server-arm64.exe release/windows-arm64/
+          cp build-win-arm64/c-game-client-arm64.exe release/windows-arm64/
+          cp build-win-arm64/c-game-server-arm64.exe release/windows-arm64/
           cp README.md release/windows-arm64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -333,8 +333,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p release/macos-x64
-          cp build-macos-x64/pxpt-client-x64 release/macos-x64/
-          cp build-macos-x64/pxpt-server-x64 release/macos-x64/
+          cp build-macos-x64/c-game-client-x64 release/macos-x64/
+          cp build-macos-x64/c-game-server-x64 release/macos-x64/
           cp README.md release/macos-x64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -364,8 +364,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p release/macos-arm64
-          cp build-macos-arm64/pxpt-client-arm64 release/macos-arm64/
-          cp build-macos-arm64/pxpt-server-arm64 release/macos-arm64/
+          cp build-macos-arm64/c-game-client-arm64 release/macos-arm64/
+          cp build-macos-arm64/c-game-server-arm64 release/macos-arm64/
           cp README.md release/macos-arm64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -403,13 +403,13 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         run: |
-          cmake --preset android-${{ matrix.arch }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset android-${{ matrix.arch }} -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset android-${{ matrix.arch }}
       - name: Package
         run: |
           mkdir -p release/android-${{ matrix.arch }}
-          cp build-android-${{ matrix.arch }}/pxpt-client* release/android-${{ matrix.arch }}/
-          cp build-android-${{ matrix.arch }}/pxpt-server* release/android-${{ matrix.arch }}/
+          cp build-android-${{ matrix.arch }}/c-game-client* release/android-${{ matrix.arch }}/
+          cp build-android-${{ matrix.arch }}/c-game-server* release/android-${{ matrix.arch }}/
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -435,14 +435,14 @@ jobs:
           cd raylib && make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK" && cd ..
       - name: Build
         run: |
-          cmake --preset web-emscripten -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset web-emscripten -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset web-emscripten
       - name: Package
         run: |
           mkdir -p release/web-wasm
-          cp build-web/pxpt-client-web.html release/web-wasm/
-          cp build-web/pxpt-client-web.js release/web-wasm/
-          cp build-web/pxpt-client-web.wasm release/web-wasm/
+          cp build-web/c-game-client-web.html release/web-wasm/
+          cp build-web/c-game-client-web.js release/web-wasm/
+          cp build-web/c-game-client-web.wasm release/web-wasm/
           cp README.md release/web-wasm/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -471,14 +471,14 @@ jobs:
           SDK=${{ matrix.arch == 'arm64' && 'iphoneos' || 'iphonesimulator' }}
           cmake --preset ios-${{ matrix.arch }} \
             -DCMAKE_OSX_SYSROOT=$SDK \
-            -DPXPT_SKIP_RAYLIB_BUILD=ON
+            -DCGAME_SKIP_RAYLIB_BUILD=ON
           cmake --build --preset ios-${{ matrix.arch }}
       - name: Package
         run: |
           mkdir -p release/ios-${{ matrix.arch }}
           BUILD_DIR=${{ matrix.arch == 'arm64' && 'build-ios' || 'build-ios-sim' }}
-          cp $BUILD_DIR/pxpt-client* release/ios-${{ matrix.arch }}/
-          cp $BUILD_DIR/pxpt-server* release/ios-${{ matrix.arch }}/
+          cp $BUILD_DIR/c-game-client* release/ios-${{ matrix.arch }}/
+          cp $BUILD_DIR/c-game-server* release/ios-${{ matrix.arch }}/
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -521,20 +521,20 @@ jobs:
           cd release-assets
           for dir in */; do
             name=$(basename "$dir")
-            tar -czf "../pxpt-racer-${{ github.ref_name }}-${name}.tar.gz" "$dir"
+            tar -czf "../c-game-racer-${{ github.ref_name }}-${name}.tar.gz" "$dir"
           done
           cd ..
 
       - name: Generate checksums
         run: |
-          sha256sum pxpt-racer-*.tar.gz > checksums.txt
+          sha256sum c-game-racer-*.tar.gz > checksums.txt
           cat checksums.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            ## PXPT Racer ${{ github.ref_name }}
+            ## CGame Racer ${{ github.ref_name }}
 
             A cross-platform multiplayer racing game.
 
@@ -542,24 +542,24 @@ jobs:
 
             | Platform | Architecture | File |
             |----------|-------------|------|
-            | Linux | x64 | `pxpt-racer-${{ github.ref_name }}-linux-x64.tar.gz` |
-            | Linux | x86 | `pxpt-racer-${{ github.ref_name }}-linux-x86.tar.gz` |
-            | Linux | ARM64 | `pxpt-racer-${{ github.ref_name }}-linux-arm64.tar.gz` |
-            | Linux | ARM32 | `pxpt-racer-${{ github.ref_name }}-linux-arm32.tar.gz` |
-            | Linux | RISC-V 64 | `pxpt-racer-${{ github.ref_name }}-linux-riscv64.tar.gz` |
-            | Linux | MIPS 64 | `pxpt-racer-${{ github.ref_name }}-linux-mips64.tar.gz` |
-            | Windows | x64 | `pxpt-racer-${{ github.ref_name }}-windows-x64.tar.gz` |
-            | Windows | x86 | `pxpt-racer-${{ github.ref_name }}-windows-x86.tar.gz` |
-            | Windows | ARM64 | `pxpt-racer-${{ github.ref_name }}-windows-arm64.tar.gz` |
-            | macOS | x64 | `pxpt-racer-${{ github.ref_name }}-macos-x64.tar.gz` |
-            | macOS | ARM64 | `pxpt-racer-${{ github.ref_name }}-macos-arm64.tar.gz` |
-            | Android | ARM64 | `pxpt-racer-${{ github.ref_name }}-android-arm64.tar.gz` |
-            | Android | ARMv7 | `pxpt-racer-${{ github.ref_name }}-android-armv7.tar.gz` |
-            | Android | x86 | `pxpt-racer-${{ github.ref_name }}-android-x86.tar.gz` |
-            | Android | x86_64 | `pxpt-racer-${{ github.ref_name }}-android-x86_64.tar.gz` |
-            | Web | WASM | `pxpt-racer-${{ github.ref_name }}-web-wasm.tar.gz` |
-            | iOS | ARM64 | `pxpt-racer-${{ github.ref_name }}-ios-arm64.tar.gz` |
-            | iOS | ARM64 Simulator | `pxpt-racer-${{ github.ref_name }}-ios-arm64-simulator.tar.gz` |
+            | Linux | x64 | `c-game-racer-${{ github.ref_name }}-linux-x64.tar.gz` |
+            | Linux | x86 | `c-game-racer-${{ github.ref_name }}-linux-x86.tar.gz` |
+            | Linux | ARM64 | `c-game-racer-${{ github.ref_name }}-linux-arm64.tar.gz` |
+            | Linux | ARM32 | `c-game-racer-${{ github.ref_name }}-linux-arm32.tar.gz` |
+            | Linux | RISC-V 64 | `c-game-racer-${{ github.ref_name }}-linux-riscv64.tar.gz` |
+            | Linux | MIPS 64 | `c-game-racer-${{ github.ref_name }}-linux-mips64.tar.gz` |
+            | Windows | x64 | `c-game-racer-${{ github.ref_name }}-windows-x64.tar.gz` |
+            | Windows | x86 | `c-game-racer-${{ github.ref_name }}-windows-x86.tar.gz` |
+            | Windows | ARM64 | `c-game-racer-${{ github.ref_name }}-windows-arm64.tar.gz` |
+            | macOS | x64 | `c-game-racer-${{ github.ref_name }}-macos-x64.tar.gz` |
+            | macOS | ARM64 | `c-game-racer-${{ github.ref_name }}-macos-arm64.tar.gz` |
+            | Android | ARM64 | `c-game-racer-${{ github.ref_name }}-android-arm64.tar.gz` |
+            | Android | ARMv7 | `c-game-racer-${{ github.ref_name }}-android-armv7.tar.gz` |
+            | Android | x86 | `c-game-racer-${{ github.ref_name }}-android-x86.tar.gz` |
+            | Android | x86_64 | `c-game-racer-${{ github.ref_name }}-android-x86_64.tar.gz` |
+            | Web | WASM | `c-game-racer-${{ github.ref_name }}-web-wasm.tar.gz` |
+            | iOS | ARM64 | `c-game-racer-${{ github.ref_name }}-ios-arm64.tar.gz` |
+            | iOS | ARM64 Simulator | `c-game-racer-${{ github.ref_name }}-ios-arm64-simulator.tar.gz` |
 
             ### Checksum
 
@@ -571,14 +571,14 @@ jobs:
 
             **Server:**
             ```
-            ./pxpt-server
+            ./c-game-server
             ```
 
             **Client:**
             ```
-            ./pxpt-client
+            ./c-game-client
             ```
 
           files: |
-            pxpt-racer-*.tar.gz
+            c-game-racer-*.tar.gz
             checksums.txt

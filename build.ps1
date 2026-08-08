@@ -1,5 +1,5 @@
-# ========================================
-# PXPT Racer Build Script (PowerShell)
+﻿# ========================================
+# CGame Racer Build Script (PowerShell)
 # Works on Windows, Linux, and macOS
 # ========================================
 
@@ -19,7 +19,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # ========================================
 if ($Help) {
     Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "  PXPT Racer Build Script" -ForegroundColor Cyan
+    Write-Host "  CGame Racer Build Script" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor White
@@ -147,7 +147,7 @@ $validArchs = @("x86", "x64", "arm32", "arm64", "riscv64", "mips64")
 
 if (-not $Arch) {
     Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "  PXPT Racer Build Script" -ForegroundColor Cyan
+    Write-Host "  CGame Racer Build Script" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "[INFO] No architecture specified. Building native architecture." -ForegroundColor Yellow
@@ -183,7 +183,7 @@ if ($validArchs -notcontains $Arch) {
 }
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  PXPT Racer Build Script" -ForegroundColor Cyan
+Write-Host "  CGame Racer Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "[INFO] Target architecture: $Arch" -ForegroundColor Green
@@ -393,10 +393,10 @@ Write-Host "  Build successful!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Architecture: $Arch"
-Write-Host "  Server: build/pxpt-server$exeExt"
-Write-Host "  Client: build/pxpt-client$exeExt"
+Write-Host "  Server: build/c-game-server$exeExt"
+Write-Host "  Client: build/c-game-client$exeExt"
 Write-Host ""
 Write-Host "  To run:"
-Write-Host "    Start server: ./build/pxpt-server$exeExt"
-Write-Host "    Start client: ./build/pxpt-client$exeExt"
+Write-Host "    Start server: ./build/c-game-server$exeExt"
+Write-Host "    Start client: ./build/c-game-client$exeExt"
 Write-Host ""

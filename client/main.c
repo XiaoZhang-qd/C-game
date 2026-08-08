@@ -1,4 +1,4 @@
-#include "raylib.h"
+﻿#include "raylib.h"
 
 #include "gui.h"
 
@@ -7,6 +7,8 @@
 #include "network.h"
 
 #include "../common/socket.h"
+
+#include "../common/hide_terminal.h"
 
 #include <stdlib.h>
 
@@ -18,14 +20,14 @@ int main()
 {
 
 
-pxpt_socket_init();
+cgame_socket_init();
 
 
 
 InitWindow(
 800,
 600,
-"PXPT Racer"
+"CGame Racer"
 );
 
 
@@ -230,11 +232,11 @@ if(send_ret < 0)
 
 
 
-PXPT_PlayerState remote_updates[PXPT_MAX_PLAYERS];
+CGAME_PlayerState remote_updates[CGAME_MAX_PLAYERS];
 int received =
 network_recv_player(
 remote_updates,
-PXPT_MAX_PLAYERS
+CGAME_MAX_PLAYERS
 );
 
 if(received == -2)
@@ -260,7 +262,7 @@ received
 
 
 
-PXPT_BombExplosion explosions[32];
+CGAME_BombExplosion explosions[32];
 int exp_count =
 network_get_bomb_explosions(
 explosions,
@@ -283,7 +285,7 @@ explosions[i].y
 
 
 
-PXPT_BombPlaced placed_bombs[32];
+CGAME_BombPlaced placed_bombs[32];
 int placed_count =
 network_get_bomb_placed(
 placed_bombs,
@@ -308,7 +310,7 @@ placed_bombs[i].timer
 
 
 
-PXPT_ServerConfig svcfg;
+CGAME_ServerConfig svcfg;
 if (network_get_server_config(&svcfg))
 {
     game_apply_server_config(&svcfg);
@@ -337,7 +339,7 @@ EndDrawing();
 CloseWindow();
 
 network_disconnect();
-pxpt_socket_cleanup();
+cgame_socket_cleanup();
 
 return 0;
 

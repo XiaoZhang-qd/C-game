@@ -1,8 +1,8 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 echo ========================================
-echo   PXPT Racer Android Build (Windows)
+echo   CGame Racer Android Build (Windows)
 echo ========================================
 echo.
 

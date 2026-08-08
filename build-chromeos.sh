@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 echo "========================================"
-echo "  PXPT Racer Chrome OS Build"
+echo "  CGame Racer Chrome OS Build"
 echo "========================================"
 echo
 echo "  Chrome OS supports two build approaches:"
-echo "    1. Native (via Crostini/Linux) — uses build.sh"
-echo "    2. Web (via browser) — uses build-wasm.sh"
+echo "    1. Native (via Crostini/Linux) 鈥?uses build.sh"
+echo "    2. Web (via browser) 鈥?uses build-wasm.sh"
 echo
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -48,10 +48,10 @@ echo "  Chrome OS build complete!"
 echo "========================================"
 echo
 echo "  For native (Crostini):"
-echo "    ./build/pxpt-server"
-echo "    ./build/pxpt-client"
+echo "    ./build/c-game-server"
+echo "    ./build/c-game-client"
 echo
 echo "  For web (Chrome browser):"
 echo "    python3 -m http.server 8000 -d build-web"
-echo "    Open: http://localhost:8000/pxpt-client-web.html"
+echo "    Open: http://localhost:8000/c-game-client-web.html"
 echo

@@ -1,12 +1,12 @@
-# ========================================
-# PXPT Racer WebAssembly Build (PowerShell)
+﻿# ========================================
+# CGame Racer WebAssembly Build (PowerShell)
 # Works on Windows, Linux, and macOS
 # ========================================
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  PXPT Racer WebAssembly Build" -ForegroundColor Cyan
+Write-Host "  CGame Racer WebAssembly Build" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -67,9 +67,9 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host "  WebAssembly build complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Output: build-web/pxpt-client-web.html"
+Write-Host "  Output: build-web/c-game-client-web.html"
 Write-Host ""
 Write-Host "  To serve locally:"
 Write-Host "    python3 -m http.server 8000 -d build-web"
-Write-Host "  Then open: http://localhost:8000/pxpt-client-web.html"
+Write-Host "  Then open: http://localhost:8000/c-game-client-web.html"
 Write-Host ""

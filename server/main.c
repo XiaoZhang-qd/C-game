@@ -1,4 +1,4 @@
-#include "server.h"
+﻿#include "server.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -130,7 +130,7 @@ int main(
         {
 
             printf(
-                "\nPXPT Racer Server\n\n"
+                "\nCGame Racer Server\n\n"
                 "-ip <address>        Server IP (default: 0.0.0.0)\n"
                 "-port <port>        Server port (default: 25565)\n"
                 "-max <players>      Max players (default: 8)\n"
@@ -151,7 +151,7 @@ int main(
 
     printf(
         "\n=====================\n"
-        " PXPT Racer Server\n"
+        " CGame Racer Server\n"
         "=====================\n"
     );
 
@@ -193,7 +193,7 @@ int main(
 
 
 
-    PXPT_Server server;
+    CGAME_Server server;
 
 
 

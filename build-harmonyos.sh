@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 echo "========================================"
-echo "  PXPT Racer HarmonyOS Build"
+echo "  CGame Racer HarmonyOS Build"
 echo "========================================"
 echo
 

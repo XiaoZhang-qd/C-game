@@ -1,5 +1,5 @@
-#ifndef PXPT_PROTOCOL_H
-#define PXPT_PROTOCOL_H
+﻿#ifndef CGAME_PROTOCOL_H
+#define CGAME_PROTOCOL_H
 
 
 #include "config.h"
@@ -28,7 +28,7 @@ int type;
 int size;
 
 
-} PXPT_PacketHeader;
+} CGAME_PacketHeader;
 
 
 
@@ -39,7 +39,7 @@ typedef struct
 int id;
 
 
-char name[PXPT_MAX_NAME];
+char name[CGAME_MAX_NAME];
 
 
 float x;
@@ -61,7 +61,7 @@ int boost_timer;
 int shield_timer;
 
 
-} PXPT_PlayerState;
+} CGAME_PlayerState;
 
 
 
@@ -69,10 +69,10 @@ int shield_timer;
 typedef struct
 {
 
-char name[PXPT_MAX_NAME];
+char name[CGAME_MAX_NAME];
 
 
-} PXPT_Login;
+} CGAME_Login;
 
 
 
@@ -82,7 +82,7 @@ typedef struct
 float x;
 float y;
 
-} PXPT_BombExplosion;
+} CGAME_BombExplosion;
 
 
 
@@ -94,7 +94,7 @@ float x;
 float y;
 float timer;
 
-} PXPT_BombPlaced;
+} CGAME_BombPlaced;
 
 
 
@@ -109,7 +109,7 @@ int skill1_cooldown;
 
 int skill2_cooldown;
 
-} PXPT_ServerConfig;
+} CGAME_ServerConfig;
 
 
 
@@ -119,10 +119,10 @@ typedef struct
 int count;
 
 
-PXPT_PlayerState players[PXPT_MAX_PLAYERS];
+CGAME_PlayerState players[CGAME_MAX_PLAYERS];
 
 
-} PXPT_PlayerList;
+} CGAME_PlayerList;
 
 
 
@@ -131,13 +131,13 @@ PXPT_PlayerState players[PXPT_MAX_PLAYERS];
 typedef struct
 {
 
-PXPT_PacketHeader header;
+CGAME_PacketHeader header;
 
 
 unsigned char data[512];
 
 
-} PXPT_Packet;
+} CGAME_Packet;
 
 
 

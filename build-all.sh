@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -11,7 +11,7 @@ ACTION="${1:-build}"
 
 if [ "${ACTION}" = "clean" ]; then
     echo "========================================"
-    echo "  PXPT Racer - Clean All Build Artifacts"
+    echo "  CGame Racer - Clean All Build Artifacts"
     echo "========================================"
     echo
 
@@ -34,7 +34,7 @@ fi
 
 if [ "${ACTION}" = "help" ] || [ "${ACTION}" = "-h" ] || [ "${ACTION}" = "--help" ]; then
     echo "========================================"
-    echo "  PXPT Racer - Build All Platforms"
+    echo "  CGame Racer - Build All Platforms"
     echo "========================================"
     echo
     echo "Usage:"
@@ -50,7 +50,7 @@ if [ "${ACTION}" = "help" ] || [ "${ACTION}" = "-h" ] || [ "${ACTION}" = "--help
 fi
 
 echo "========================================"
-echo "  PXPT Racer - Build All Platforms"
+echo "  CGame Racer - Build All Platforms"
 echo "========================================"
 echo
 

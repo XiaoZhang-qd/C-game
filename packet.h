@@ -1,5 +1,5 @@
-#ifndef PXPT_PACKET_H
-#define PXPT_PACKET_H
+#ifndef CGAME_PACKET_H
+#define CGAME_PACKET_H
 
 
 #include "protocol.h"
@@ -12,13 +12,13 @@
 typedef struct
 {
 
-    PXPT_Header header;
+    CGAME_PacketHeader header;
 
 
     unsigned char data[MAX_PACKET];
 
 
-} PXPT_Packet;
+} CGAME_Packet;
 
 
 

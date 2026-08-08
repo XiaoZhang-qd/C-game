@@ -1,4 +1,4 @@
-#include "gui.h"
+﻿#include "gui.h"
 
 #include <string.h>
 
@@ -9,7 +9,7 @@ ServerInput* input
 
 
 DrawText(
-"PXPT RACER",
+"CGame RACER",
 230,
 30,
 40,
@@ -38,7 +38,7 @@ GuiTextBox(
 35
 },
 input->name,
-PXPT_MAX_NAME,
+CGAME_MAX_NAME,
 input->name_edit
 );
 

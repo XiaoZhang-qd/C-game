@@ -1,8 +1,8 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion
 
 echo ========================================
-echo   PXPT Racer WebAssembly Build (Windows)
+echo   CGame Racer WebAssembly Build (Windows)
 echo ========================================
 echo.
 
@@ -52,11 +52,11 @@ echo ========================================
 echo   WebAssembly build complete!
 echo ========================================
 echo.
-echo   Output: build-web\pxpt-client-web.html
+echo   Output: build-web\c-game-client-web.html
 echo.
 echo   To serve locally:
 echo     python -m http.server 8000 -d build-web
-echo   Then open: http://localhost:8000/pxpt-client-web.html
+echo   Then open: http://localhost:8000/c-game-client-web.html
 echo.
 
 pause

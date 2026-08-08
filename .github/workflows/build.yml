@@ -1,4 +1,4 @@
-name: Build
+﻿name: Build
 
 on:
   push:
@@ -105,7 +105,7 @@ jobs:
             pkgs: "build-essential cmake ninja-build"
             raylib_platform: "PLATFORM_OS=LINUX"
             raylib_cflags: ""
-            extra_flags: "-DPXPT_IS_CHROMEOS=ON"
+            extra_flags: "-DCGAME_IS_CHROMEOS=ON"
 
     steps:
       - uses: actions/checkout@v4
@@ -137,7 +137,7 @@ jobs:
         run: |
           EXTRA_ARGS=""
           if [ -n "${{ matrix.cross_cc }}" ]; then
-            EXTRA_ARGS="-DPXPT_SKIP_RAYLIB_BUILD=ON"
+            EXTRA_ARGS="-DCGAME_SKIP_RAYLIB_BUILD=ON"
           fi
           cmake --preset ${{ matrix.preset }} ${{ matrix.extra_flags }} $EXTRA_ARGS
 
@@ -145,15 +145,15 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-linux-${{ matrix.arch }}"
+          name: "c-game-linux-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -222,15 +222,15 @@ jobs:
 
       - name: List artifacts
         shell: bash
-        run: ls -la ${{ matrix.build_dir }}/pxpt-* 2>/dev/null || echo "No artifacts found"
+        run: ls -la ${{ matrix.build_dir }}/c-game-* 2>/dev/null || echo "No artifacts found"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-windows-${{ matrix.arch }}"
+          name: "c-game-windows-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*.exe
-            ${{ matrix.build_dir }}/pxpt-server*.exe
+            ${{ matrix.build_dir }}/c-game-client*.exe
+            ${{ matrix.build_dir }}/c-game-server*.exe
           if-no-files-found: error
           retention-days: 30
 
@@ -278,15 +278,15 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-macos-${{ matrix.arch }}"
+          name: "c-game-macos-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -348,21 +348,21 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         run: |
-          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-android-${{ matrix.arch }}"
+          name: "c-game-android-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -392,22 +392,22 @@ jobs:
           cd ..
 
       - name: Configure CMake
-        run: cmake --preset web-emscripten -DPXPT_SKIP_RAYLIB_BUILD=ON
+        run: cmake --preset web-emscripten -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset web-emscripten
 
       - name: List artifacts
-        run: ls -la build-web/pxpt-*
+        run: ls -la build-web/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-web-wasm"
+          name: "c-game-web-wasm"
           path: |
-            build-web/pxpt-client-web.html
-            build-web/pxpt-client-web.js
-            build-web/pxpt-client-web.wasm
+            build-web/c-game-client-web.html
+            build-web/c-game-client-web.js
+            build-web/c-game-client-web.wasm
           if-no-files-found: error
           retention-days: 30
 
@@ -448,21 +448,21 @@ jobs:
         run: |
           cmake --preset ${{ matrix.preset }} \
             -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }} \
-            -DPXPT_SKIP_RAYLIB_BUILD=ON
+            -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-ios-${{ matrix.arch }}"
+          name: "c-game-ios-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -527,21 +527,21 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-${{ matrix.bsd }}-x64"
+          name: "c-game-${{ matrix.bsd }}-x64"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -587,7 +587,7 @@ jobs:
           cmake -G Ninja \
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
             -DCMAKE_AR=${{ matrix.ar }} \
-            -DPXPT_SKIP_RAYLIB_BUILD=ON \
+            -DCGAME_SKIP_RAYLIB_BUILD=ON \
             -B ${{ matrix.build_dir }} \
             -S .
 
@@ -595,15 +595,15 @@ jobs:
         run: cmake --build ${{ matrix.build_dir }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-windows-${{ matrix.arch }}-mingw"
+          name: "c-game-windows-${{ matrix.arch }}-mingw"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*.exe
-            ${{ matrix.build_dir }}/pxpt-server*.exe
+            ${{ matrix.build_dir }}/c-game-client*.exe
+            ${{ matrix.build_dir }}/c-game-server*.exe
           if-no-files-found: error
           retention-days: 30
 
@@ -649,21 +649,21 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake --preset ${{ matrix.preset }} -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-ios-${{ matrix.arch }}-theos"
+          name: "c-game-ios-${{ matrix.arch }}-theos"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -691,21 +691,21 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake --preset harmonyos-arm64 -DPXPT_SKIP_RAYLIB_BUILD=ON
+          cmake --preset harmonyos-arm64 -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset harmonyos-arm64
 
       - name: List artifacts
-        run: ls -la build-harmonyos-arm64/pxpt-*
+        run: ls -la build-harmonyos-arm64/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-harmonyos-arm64"
+          name: "c-game-harmonyos-arm64"
           path: |
-            build-harmonyos-arm64/pxpt-client*
-            build-harmonyos-arm64/pxpt-server*
+            build-harmonyos-arm64/c-game-client*
+            build-harmonyos-arm64/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -732,21 +732,21 @@ jobs:
           cd ..
 
       - name: Configure CMake
-        run: cmake --preset linux-drm -DPXPT_SKIP_RAYLIB_BUILD=ON
+        run: cmake --preset linux-drm -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset linux-drm
 
       - name: List artifacts
-        run: ls -la build-drm/pxpt-*
+        run: ls -la build-drm/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-linux-drm"
+          name: "c-game-linux-drm"
           path: |
-            build-drm/pxpt-client*
-            build-drm/pxpt-server*
+            build-drm/c-game-client*
+            build-drm/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -798,7 +798,7 @@ jobs:
           cmake -G Ninja \
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
             -DCMAKE_AR=${{ matrix.ar }} \
-            -DPXPT_SKIP_RAYLIB_BUILD=ON \
+            -DCGAME_SKIP_RAYLIB_BUILD=ON \
             -B ${{ matrix.build_dir }} \
             -S .
 
@@ -806,15 +806,15 @@ jobs:
         run: cmake --build ${{ matrix.build_dir }}
 
       - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/pxpt-*
+        run: ls -la ${{ matrix.build_dir }}/c-game-*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: "pxpt-linux-${{ matrix.arch }}"
+          name: "c-game-linux-${{ matrix.arch }}"
           path: |
-            ${{ matrix.build_dir }}/pxpt-client*
-            ${{ matrix.build_dir }}/pxpt-server*
+            ${{ matrix.build_dir }}/c-game-client*
+            ${{ matrix.build_dir }}/c-game-server*
           if-no-files-found: error
           retention-days: 30
 
@@ -841,7 +841,7 @@ jobs:
       - name: Display build summary
         run: |
           echo "============================================"
-          echo "  PXPT Racer Build Summary"
+          echo "  CGame Racer Build Summary"
           echo "============================================"
           echo "All build jobs completed!"
           echo ""

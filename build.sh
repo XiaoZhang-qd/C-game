@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -13,7 +13,7 @@ ARCH="${2:-}"
 show_help() {
     cat << EOF
 ========================================
-  PXPT Racer Build Script (Linux/macOS)
+  CGame Racer Build Script (Linux/macOS)
   Usage:
     ./build.sh [arch]                  Build (default action)
     ./build.sh clean [arch]            Clean build artifacts
@@ -233,7 +233,7 @@ if [ "${ARCH}" = "build" ]; then
 fi
 
 echo "========================================"
-echo "  PXPT Racer Build Script (Linux/macOS)"
+echo "  CGame Racer Build Script (Linux/macOS)"
 echo "  Usage: ./build.sh [arch]"
 echo "    arch: x64 (default), x86, arm64, arm32, riscv64, riscv32,"
 echo "          ppc64, ppc64le, ppc32, s390x, mips64, mips64le,"
@@ -478,10 +478,10 @@ echo "========================================"
 echo "  Build successful!"
 echo "========================================"
 echo
-echo "  Server: ${BUILD_DIR}/pxpt-server"
-echo "  Client: ${BUILD_DIR}/pxpt-client"
+echo "  Server: ${BUILD_DIR}/c-game-server"
+echo "  Client: ${BUILD_DIR}/c-game-client"
 echo
 echo "  To run:"
-echo "    Start server: ./${BUILD_DIR}/pxpt-server"
-echo "    Start client: ./${BUILD_DIR}/pxpt-client"
+echo "    Start server: ./${BUILD_DIR}/c-game-server"
+echo "    Start client: ./${BUILD_DIR}/c-game-client"
 echo

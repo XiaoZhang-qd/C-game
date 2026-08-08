@@ -1,4 +1,4 @@
-#include "game.h"
+﻿#include "game.h"
 
 #include "raylib.h"
 
@@ -9,19 +9,19 @@
 
 static PlayerCar player;
 
-static PXPT_PlayerState remote_players[PXPT_MAX_PLAYERS];
+static CGAME_PlayerState remote_players[CGAME_MAX_PLAYERS];
 static int remote_count = 0;
 
-static float last_update_time[PXPT_MAX_PLAYERS];
+static float last_update_time[CGAME_MAX_PLAYERS];
 
-static Bomb bombs[PXPT_MAX_BOMBS];
+static Bomb bombs[CGAME_MAX_BOMBS];
 static int bomb_count = 0;
 
 #define MAX_REMOTE_BOMBS 16
-static PXPT_BombPlaced remote_bombs[MAX_REMOTE_BOMBS];
+static CGAME_BombPlaced remote_bombs[MAX_REMOTE_BOMBS];
 static int remote_bomb_count = 0;
 
-static PXPT_ServerConfig server_cfg;
+static CGAME_ServerConfig server_cfg;
 static int config_received = 0;
 
 static int controls_visible = 1;
@@ -172,12 +172,12 @@ player.bomb_cooldown = 0;
 player.skill1_cooldown = 0;
 player.skill2_cooldown = 0;
 
-player.hp = PXPT_MAX_HP;
-player.max_hp = PXPT_MAX_HP;
+player.hp = CGAME_MAX_HP;
+player.max_hp = CGAME_MAX_HP;
 player.dead = 0;
 player.respawn_timer = 0;
 
-server_cfg.max_players = PXPT_MAX_PLAYERS;
+server_cfg.max_players = CGAME_MAX_PLAYERS;
 server_cfg.bomb_cooldown = 30;
 server_cfg.skill1_cooldown = 300;
 server_cfg.skill2_cooldown = 300;
@@ -187,7 +187,7 @@ remote_count=0;
 
 for(
 int i=0;
-i<PXPT_MAX_PLAYERS;
+i<CGAME_MAX_PLAYERS;
 i++
 )
 {
@@ -300,7 +300,7 @@ btn_skill2_prev = btn_skill2_pressed;
 
 if ((is_bomb_key() || bomb_pressed_now) && player.bomb_cooldown <= 0)
 {
-    if (bomb_count < PXPT_MAX_BOMBS)
+    if (bomb_count < CGAME_MAX_BOMBS)
     {
         bombs[bomb_count].x = player.x;
         bombs[bomb_count].y = player.y + 30;
@@ -477,7 +477,7 @@ i++
 )
 {
 
-PXPT_PlayerState* p =
+CGAME_PlayerState* p =
 &remote_players[i];
 
 if(now - last_update_time[i] > 3.0f)
@@ -637,8 +637,8 @@ return &player;
 
 void game_set_player_name(const char* name)
 {
-strncpy(player.name, name, PXPT_MAX_NAME - 1);
-player.name[PXPT_MAX_NAME - 1] = '\0';
+strncpy(player.name, name, CGAME_MAX_NAME - 1);
+player.name[CGAME_MAX_NAME - 1] = '\0';
 }
 
 
@@ -663,7 +663,7 @@ return bombs;
 
 
 void game_update_remote(
-PXPT_PlayerState* updates,
+CGAME_PlayerState* updates,
 int count
 )
 {
@@ -677,7 +677,7 @@ i++
 )
 {
 
-PXPT_PlayerState* src =
+CGAME_PlayerState* src =
 &updates[i];
 
 int found = 0;
@@ -714,7 +714,7 @@ break;
 if(
 !found
 &&
-remote_count < PXPT_MAX_PLAYERS
+remote_count < CGAME_MAX_PLAYERS
 )
 {
 
@@ -745,7 +745,7 @@ void game_apply_bomb_explosion(float x, float y)
             {
                 player.hp = 0;
                 player.dead = 1;
-                player.respawn_timer = PXPT_RESPAWN_TIME;
+                player.respawn_timer = CGAME_RESPAWN_TIME;
             }
         }
     }
@@ -768,7 +768,7 @@ void game_apply_bomb_explosion(float x, float y)
 }
 
 
-void game_apply_server_config(const PXPT_ServerConfig* cfg)
+void game_apply_server_config(const CGAME_ServerConfig* cfg)
 {
     if (!cfg) return;
     server_cfg = *cfg;

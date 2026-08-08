@@ -1,4 +1,4 @@
-#ifndef CLIENT_NETWORK_H
+﻿#ifndef CLIENT_NETWORK_H
 #define CLIENT_NETWORK_H
 
 
@@ -40,7 +40,7 @@ int shield_timer
 
 
 int network_recv_player(
-PXPT_PlayerState* out_players,
+CGAME_PlayerState* out_players,
 int max_players
 );
 
@@ -48,9 +48,9 @@ int max_players
 
 int network_send_bomb_explosion(float x, float y);
 int network_send_bomb_placed(int player_id, float x, float y, float timer);
-int network_get_bomb_explosions(PXPT_BombExplosion* out, int max);
-int network_get_bomb_placed(PXPT_BombPlaced* out, int max);
-int network_get_server_config(PXPT_ServerConfig* out);
+int network_get_bomb_explosions(CGAME_BombExplosion* out, int max);
+int network_get_bomb_placed(CGAME_BombPlaced* out, int max);
+int network_get_server_config(CGAME_ServerConfig* out);
 
 
 

@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 echo "========================================"
-echo "  PXPT Racer iOS Build"
+echo "  CGame Racer iOS Build"
 echo "========================================"
 echo
 
@@ -69,13 +69,13 @@ if [[ "${IS_MACOS}" -eq 1 ]]; then
     echo "  Output: build-ios/"
     echo
     echo "  To deploy to device:"
-    echo "    1. Open build-ios/PXPT_Racer.xcodeproj in Xcode"
+    echo "    1. Open build-ios/CGAME_Racer.xcodeproj in Xcode"
     echo "    2. Select your target device"
     echo "    3. Press Run"
     echo
     echo "  Command line deploy:"
-    echo "    xcodebuild -project build-ios/PXPT_Racer.xcodeproj \\"
-    echo "      -scheme pxpt-client \\"
+    echo "    xcodebuild -project build-ios/CGAME_Racer.xcodeproj \\"
+    echo "      -scheme c-game-client \\"
     echo "      -destination 'generic/platform=iOS' \\"
     echo "      build"
     echo
@@ -209,7 +209,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
     echo "    1. Compile all source files: bash build-ios-theos.sh"
     echo "    2. Create .app bundle with Info.plist"
     echo "    3. Copy built binary into .app/"
-    echo "    4. Zip into .ipa: zip -r pxpt-client.ipa Payload/"
+    echo "    4. Zip into .ipa: zip -r c-game-client.ipa Payload/"
     echo
     echo "  For a complete IPA workflow, see build-ios-theos.sh"
     echo

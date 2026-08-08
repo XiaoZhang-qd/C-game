@@ -1,4 +1,4 @@
-{
+﻿{
     "version": 3,
     "cmakeMinimumRequired": {
         "major": 3,
@@ -132,7 +132,7 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build-drm",
             "cacheVariables": {
-                "PXPT_USE_DRM": "ON"
+                "CGAME_USE_DRM": "ON"
             },
             "condition": {
                 "type": "equals",
@@ -146,7 +146,7 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build-chromeos",
             "cacheVariables": {
-                "PXPT_IS_CHROMEOS": "ON"
+                "CGAME_IS_CHROMEOS": "ON"
             },
             "condition": {
                 "type": "equals",
@@ -393,7 +393,7 @@
             "binaryDir": "${sourceDir}/build-chromeos-x64",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/chromeos-x64.cmake",
-                "PXPT_IS_CHROMEOS": "ON"
+                "CGAME_IS_CHROMEOS": "ON"
             },
             "condition": {
                 "type": "equals",

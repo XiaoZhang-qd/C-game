@@ -1,12 +1,12 @@
 # ========================================
-# PXPT Racer - Build All Platforms (PowerShell)
+# CGame Racer - Build All Platforms (PowerShell)
 # Works on Windows, Linux, and macOS
 # ========================================
 
 $ErrorActionPreference = "Continue"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  PXPT Racer - Build All Platforms" -ForegroundColor Cyan
+Write-Host "  CGame Racer - Build All Platforms" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

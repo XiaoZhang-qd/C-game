@@ -1,4 +1,4 @@
-#include "server.h"
+﻿#include "server.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -26,12 +26,12 @@
 
 
 static void send_login_response(
-    pxpt_socket sock,
+    cgame_socket sock,
     int code
 )
 {
 
-    PXPT_Packet packet;
+    CGAME_Packet packet;
     memset(
         &packet,
         0,
@@ -48,7 +48,7 @@ static void send_login_response(
         sizeof(int)
     );
 
-    pxpt_send(
+    cgame_send(
         sock,
         &packet,
         sizeof(packet)
@@ -59,7 +59,7 @@ static void send_login_response(
 
 
 static int is_name_taken(
-    PXPT_Server* server,
+    CGAME_Server* server,
     const char* name,
     int exclude_index
 )
@@ -99,15 +99,15 @@ static int is_name_taken(
 
 
 static void disconnect_player(
-    PXPT_Player* player
+    CGAME_Player* player
 )
 {
 
-    pxpt_socket_close(
+    cgame_socket_close(
         player->tcp
     );
     player->tcp =
-        PXPT_INVALID_SOCKET;
+        CGAME_INVALID_SOCKET;
     player->connected = 0;
     player->logged_in = 0;
     player->name[0] = '\0';
@@ -121,15 +121,15 @@ static void disconnect_player(
 
 
 static void send_player_state(
-    PXPT_Player* to,
-    PXPT_Player* player
+    CGAME_Player* to,
+    CGAME_Player* player
 )
 {
 
     if(!player->logged_in)
         return;
 
-    PXPT_Packet packet;
+    CGAME_Packet packet;
     memset(
         &packet,
         0,
@@ -138,9 +138,9 @@ static void send_player_state(
     packet.header.type =
         PKT_PLAYER_UPDATE;
     packet.header.size =
-        sizeof(PXPT_PlayerState);
+        sizeof(CGAME_PlayerState);
 
-    PXPT_PlayerState state;
+    CGAME_PlayerState state;
     memset(&state, 0, sizeof(state));
     state.x = player->state.x;
     state.y = player->state.y;
@@ -154,17 +154,17 @@ static void send_player_state(
     strncpy(
         state.name,
         player->name,
-        PXPT_MAX_NAME - 1
+        CGAME_MAX_NAME - 1
     );
-    state.name[PXPT_MAX_NAME - 1] = '\0';
+    state.name[CGAME_MAX_NAME - 1] = '\0';
 
     memcpy(
         packet.data,
         &state,
-        sizeof(PXPT_PlayerState)
+        sizeof(CGAME_PlayerState)
     );
 
-    pxpt_send(
+    cgame_send(
         to->tcp,
         &packet,
         sizeof(packet)
@@ -175,7 +175,7 @@ static void send_player_state(
 
 
 static void broadcast_players(
-    PXPT_Server* server
+    CGAME_Server* server
 )
 {
 
@@ -224,7 +224,7 @@ static void broadcast_players(
 
 
 int server_start(
-    PXPT_Server* server,
+    CGAME_Server* server,
     const char* ip,
     int port,
     int max_players
@@ -234,7 +234,7 @@ int server_start(
     memset(
         server,
         0,
-        sizeof(PXPT_Server)
+        sizeof(CGAME_Server)
     );
 
     strcpy(
@@ -249,7 +249,7 @@ int server_start(
         max_players;
 
     if(
-        pxpt_socket_init()!=0
+        cgame_socket_init()!=0
     )
         return -1;
 
@@ -263,11 +263,11 @@ int server_start(
     if(
         server->listen_socket
         ==
-        PXPT_INVALID_SOCKET
+        CGAME_INVALID_SOCKET
     )
         return -1;
 
-    pxpt_socket_set_nonblocking(
+    cgame_socket_set_nonblocking(
         server->listen_socket
     );
 
@@ -293,8 +293,8 @@ int server_start(
         <0
     )
     {
-        pxpt_socket_close(server->listen_socket);
-        server->listen_socket = PXPT_INVALID_SOCKET;
+        cgame_socket_close(server->listen_socket);
+        server->listen_socket = CGAME_INVALID_SOCKET;
         return -1;
     }
 
@@ -305,13 +305,13 @@ int server_start(
 
     for(
         int i=0;
-        i<PXPT_MAX_PLAYERS;
+        i<CGAME_MAX_PLAYERS;
         i++
     )
     {
 
         server->players[i].tcp =
-            PXPT_INVALID_SOCKET;
+            CGAME_INVALID_SOCKET;
         server->players[i].connected = 0;
         server->players[i].logged_in = 0;
         server->players[i].id = i;
@@ -341,7 +341,7 @@ int server_start(
 
 
 void server_update(
-    PXPT_Server* server
+    CGAME_Server* server
 )
 {
 
@@ -360,7 +360,7 @@ void server_update(
         sizeof(client_addr);
 #endif
 
-    pxpt_socket client =
+    cgame_socket client =
         accept(
             server->listen_socket,
             (struct sockaddr*)&client_addr,
@@ -368,11 +368,11 @@ void server_update(
         );
 
     if(
-        client != PXPT_INVALID_SOCKET
+        client != CGAME_INVALID_SOCKET
     )
     {
 
-        pxpt_socket_set_nonblocking(
+        cgame_socket_set_nonblocking(
             client
         );
 
@@ -388,11 +388,11 @@ void server_update(
             if(
                 server->players[i].tcp
                 ==
-                PXPT_INVALID_SOCKET
+                CGAME_INVALID_SOCKET
             )
             {
 
-                PXPT_Player* player =
+                CGAME_Player* player =
                     &server->players[i];
 
                 player->tcp =
@@ -425,7 +425,7 @@ void server_update(
         if(!slot_found)
         {
             printf("Server full, rejecting connection\n");
-            pxpt_socket_close(client);
+            cgame_socket_close(client);
         }
 
     }
@@ -439,19 +439,19 @@ void server_update(
     )
     {
 
-        PXPT_Player* player =
+        CGAME_Player* player =
             &server->players[i];
 
         if(
             player->tcp
             ==
-            PXPT_INVALID_SOCKET
+            CGAME_INVALID_SOCKET
         )
             continue;
 
-        PXPT_Packet packet;
+        CGAME_Packet packet;
         int r =
-        pxpt_recv(
+        cgame_recv(
             player->tcp,
             &packet,
             sizeof(packet)
@@ -485,8 +485,8 @@ void server_update(
         )
         {
 
-            PXPT_Login* login =
-                (PXPT_Login*)packet.data;
+            CGAME_Login* login =
+                (CGAME_Login*)packet.data;
 
             if(
                 strlen(login->name)
@@ -537,9 +537,9 @@ void server_update(
             strncpy(
                 player->name,
                 login->name,
-                PXPT_MAX_NAME - 1
+                CGAME_MAX_NAME - 1
             );
-            player->name[PXPT_MAX_NAME - 1] = '\0';
+            player->name[CGAME_MAX_NAME - 1] = '\0';
             player->logged_in = 1;
 
             send_login_response(
@@ -548,12 +548,12 @@ void server_update(
             );
 
             {
-                PXPT_Packet cfg_pkt;
+                CGAME_Packet cfg_pkt;
                 memset(&cfg_pkt, 0, sizeof(cfg_pkt));
                 cfg_pkt.header.type = PKT_SERVER_CONFIG;
-                cfg_pkt.header.size = sizeof(PXPT_ServerConfig);
-                memcpy(cfg_pkt.data, &server->config, sizeof(PXPT_ServerConfig));
-                pxpt_send(player->tcp, &cfg_pkt, sizeof(cfg_pkt));
+                cfg_pkt.header.size = sizeof(CGAME_ServerConfig);
+                memcpy(cfg_pkt.data, &server->config, sizeof(CGAME_ServerConfig));
+                cgame_send(player->tcp, &cfg_pkt, sizeof(cfg_pkt));
             }
 
             printf(
@@ -578,12 +578,12 @@ void server_update(
             if(
                 packet.header.size
                 !=
-                sizeof(PXPT_PlayerState)
+                sizeof(CGAME_PlayerState)
             )
                 continue;
 
-            PXPT_PlayerState* state =
-                (PXPT_PlayerState*)packet.data;
+            CGAME_PlayerState* state =
+                (CGAME_PlayerState*)packet.data;
 
             player->state.x =
                 state->x;
@@ -616,7 +616,7 @@ void server_update(
             if(
                 packet.header.size
                 !=
-                sizeof(PXPT_BombExplosion)
+                sizeof(CGAME_BombExplosion)
             )
                 continue;
 
@@ -637,7 +637,7 @@ void server_update(
                 )
                 {
 
-                    pxpt_send(
+                    cgame_send(
                         server->players[j].tcp,
                         &packet,
                         sizeof(packet)
@@ -663,7 +663,7 @@ void server_update(
             if(
                 packet.header.size
                 !=
-                sizeof(PXPT_BombPlaced)
+                sizeof(CGAME_BombPlaced)
             )
                 continue;
 
@@ -684,7 +684,7 @@ void server_update(
                 )
                 {
 
-                    pxpt_send(
+                    cgame_send(
                         server->players[j].tcp,
                         &packet,
                         sizeof(packet)
@@ -717,7 +717,7 @@ void server_update(
 
 
 void server_stop(
-    PXPT_Server* server
+    CGAME_Server* server
 )
 {
 
@@ -731,25 +731,25 @@ void server_stop(
         if(
             server->players[i].tcp
             !=
-            PXPT_INVALID_SOCKET
+            CGAME_INVALID_SOCKET
         )
         {
 
-            pxpt_socket_close(
+            cgame_socket_close(
                 server->players[i].tcp
             );
             server->players[i].tcp =
-                PXPT_INVALID_SOCKET;
+                CGAME_INVALID_SOCKET;
 
         }
 
     }
 
-    pxpt_socket_close(
+    cgame_socket_close(
         server->listen_socket
     );
 
-    server->listen_socket = PXPT_INVALID_SOCKET;
-    pxpt_socket_cleanup();
+    server->listen_socket = CGAME_INVALID_SOCKET;
+    cgame_socket_cleanup();
 
 }

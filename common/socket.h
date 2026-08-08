@@ -1,11 +1,11 @@
-#ifndef PXPT_SOCKET_H
-#define PXPT_SOCKET_H
+﻿#ifndef CGAME_SOCKET_H
+#define CGAME_SOCKET_H
 
 
 #include "platform.h"
 
 
-#if defined(PXPT_WINDOWS)
+#if defined(CGAME_WINDOWS)
 
 
 #define CloseWindow CloseWindowWin32
@@ -21,10 +21,10 @@
 #undef ShowCursor
 
 
-typedef SOCKET pxpt_socket;
+typedef SOCKET cgame_socket;
 
 
-#define PXPT_INVALID_SOCKET INVALID_SOCKET
+#define CGAME_INVALID_SOCKET INVALID_SOCKET
 
 
 
@@ -37,10 +37,10 @@ typedef SOCKET pxpt_socket;
 #include <arpa/inet.h>
 
 
-typedef int pxpt_socket;
+typedef int cgame_socket;
 
 
-#define PXPT_INVALID_SOCKET (-1)
+#define CGAME_INVALID_SOCKET (-1)
 
 
 
@@ -49,43 +49,43 @@ typedef int pxpt_socket;
 
 
 
-int pxpt_socket_init();
+int cgame_socket_init();
 
 
-void pxpt_socket_cleanup();
+void cgame_socket_cleanup();
 
 
-void pxpt_socket_close(
-    pxpt_socket s
+void cgame_socket_close(
+    cgame_socket s
 );
 
 
 
-pxpt_socket pxpt_tcp_connect(
+cgame_socket cgame_tcp_connect(
     const char* ip,
     int port
 );
 
 
 
-int pxpt_send(
-    pxpt_socket s,
+int cgame_send(
+    cgame_socket s,
     const void* data,
     int size
 );
 
 
 
-int pxpt_recv(
-    pxpt_socket s,
+int cgame_recv(
+    cgame_socket s,
     void* data,
     int size
 );
 
 
 
-int pxpt_socket_set_nonblocking(
-    pxpt_socket s
+int cgame_socket_set_nonblocking(
+    cgame_socket s
 );
 
 

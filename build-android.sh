@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
 echo "========================================"
-echo "  PXPT Racer Android Build"
+echo "  CGame Racer Android Build"
 echo "========================================"
 echo
 
