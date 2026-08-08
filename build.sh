@@ -1,6 +1,237 @@
 #!/usr/bin/env bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "${SCRIPT_DIR}"
+
+# ========================================
+# Parse arguments
+# ========================================
+ACTION="${1:-build}"
+ARCH="${2:-}"
+
+show_help() {
+    cat << EOF
+========================================
+  PXPT Racer Build Script (Linux/macOS)
+  Usage:
+    ./build.sh [arch]                  Build (default action)
+    ./build.sh clean [arch]            Clean build artifacts
+    ./build.sh clean all               Clean ALL build artifacts
+    ./build.sh help                    Show this help
+
+  arch: x64 (default), x86, arm64, arm32, riscv64, riscv32,
+        ppc64, ppc64le, ppc32, s390x, mips64, mips64le,
+        mips32, mips32le, sparc64, universal (macOS)
+EOF
+}
+
+# ========================================
+# Clean action
+# ========================================
+if [ "${ACTION}" = "clean" ] || [ "${ACTION}" = "clean" ]; then
+    CLEAN_ARCH="${ARCH:-}"
+
+    all_build_dirs=(
+        "build"
+        "build-win32"
+        "build-win-arm64"
+        "build-linux-x86"
+        "build-linux-arm32"
+        "build-linux-arm64"
+        "build-linux-riscv64"
+        "build-linux-riscv32"
+        "build-linux-ppc64"
+        "build-linux-ppc64le"
+        "build-linux-ppc32"
+        "build-linux-s390x"
+        "build-linux-mips64"
+        "build-linux-mips64le"
+        "build-linux-mips32"
+        "build-linux-mips32le"
+        "build-linux-sparc64"
+        "build-drm"
+        "build-chromeos"
+        "build-chromeos-x64"
+        "build-macos-x64"
+        "build-macos-arm64"
+        "build-macos-universal"
+        "build-freebsd"
+        "build-openbsd"
+        "build-netbsd"
+        "build-dragonfly"
+        "build-android-arm64"
+        "build-android-armeabi-v7a"
+        "build-android-x86"
+        "build-android-x86_64"
+        "build-ios"
+        "build-ios-theos"
+        "build-ios-sim"
+        "build-ios-sim-theos"
+        "build-web"
+        "build-harmonyos-arm64"
+        "build-mingw-x64"
+        "build-mingw-x86"
+    )
+
+    preset_to_build_dir() {
+        case "$1" in
+            linux-x64|macos-x64)     echo "build" ;;
+            linux-x86)               echo "build-linux-x86" ;;
+            linux-arm64)             echo "build-linux-arm64" ;;
+            linux-arm32)             echo "build-linux-arm32" ;;
+            linux-riscv64)           echo "build-linux-riscv64" ;;
+            linux-riscv32)           echo "build-linux-riscv32" ;;
+            linux-ppc64)             echo "build-linux-ppc64" ;;
+            linux-ppc64le)           echo "build-linux-ppc64le" ;;
+            linux-ppc32)             echo "build-linux-ppc32" ;;
+            linux-s390x)             echo "build-linux-s390x" ;;
+            linux-mips64)            echo "build-linux-mips64" ;;
+            linux-mips64le)          echo "build-linux-mips64le" ;;
+            linux-mips32)            echo "build-linux-mips32" ;;
+            linux-mips32le)          echo "build-linux-mips32le" ;;
+            linux-sparc64)           echo "build-linux-sparc64" ;;
+            linux-drm)               echo "build-drm" ;;
+            linux-chromeos)          echo "build-chromeos" ;;
+            macos-arm64)             echo "build-macos-arm64" ;;
+            macos-universal)         echo "build-macos-universal" ;;
+            freebsd-x64)             echo "build-freebsd" ;;
+            openbsd-x64)             echo "build-openbsd" ;;
+            netbsd-x64)              echo "build-netbsd" ;;
+            dragonfly-x64)           echo "build-dragonfly" ;;
+            android-arm64)           echo "build-android-arm64" ;;
+            android-armv7)           echo "build-android-armeabi-v7a" ;;
+            android-x86)             echo "build-android-x86" ;;
+            android-x86_64)          echo "build-android-x86_64" ;;
+            ios-arm64)               echo "build-ios" ;;
+            ios-arm64-theos)         echo "build-ios-theos" ;;
+            ios-arm64-simulator)     echo "build-ios-sim" ;;
+            ios-arm64-sim-theos)     echo "build-ios-sim-theos" ;;
+            web-emscripten)          echo "build-web" ;;
+            harmonyos-arm64)         echo "build-harmonyos-arm64" ;;
+            chromeos-x64)            echo "build-chromeos-x64" ;;
+            windows-x64)             echo "build" ;;
+            windows-x86)             echo "build-win32" ;;
+            windows-arm64)           echo "build-win-arm64" ;;
+            *)                       echo "" ;;
+        esac
+    }
+
+    do_clean_dir() {
+        local dir="$1"
+        if [ -z "${dir}" ]; then
+            dir="build"
+        fi
+        if [ -d "${dir}" ]; then
+            echo "[CLEAN] Removing ${dir}..."
+            rm -rf "${dir}"
+            echo "[CLEAN] Done: ${dir}"
+        else
+            echo "[CLEAN] Skipping (not found): ${dir}"
+        fi
+    }
+
+    if [ "${CLEAN_ARCH}" = "all" ] || [ "${CLEAN_ARCH}" = "*" ]; then
+        echo "========================================"
+        echo "  Cleaning ALL build artifacts"
+        echo "========================================"
+        echo
+        for dir in "${all_build_dirs[@]}"; do
+            do_clean_dir "${dir}"
+        done
+        echo
+        echo "[CLEAN] All build artifacts cleaned."
+        exit 0
+    elif [ -z "${CLEAN_ARCH}" ]; then
+        HOST_OS="$(uname -s)"
+        case "${HOST_OS}" in
+            Linux)  CLEAN_ARCH="x64" ;;
+            Darwin) CLEAN_ARCH="x64" ;;
+            *)      CLEAN_ARCH="x64" ;;
+        esac
+        echo "[CLEAN] No architecture specified, cleaning default: ${CLEAN_ARCH}"
+    fi
+
+    detect_os_for_clean() {
+        case "$(uname -s)" in
+            Linux)    echo "Linux" ;;
+            Darwin)   echo "macOS" ;;
+            FreeBSD)  echo "FreeBSD" ;;
+            OpenBSD)  echo "OpenBSD" ;;
+            NetBSD)   echo "NetBSD" ;;
+            DragonFly) echo "DragonFly" ;;
+            *)        echo "Unknown" ;;
+        esac
+    }
+
+    HOST_OS="$(detect_os_for_clean)"
+    PRESET=""
+
+    case "${HOST_OS}" in
+        Linux)
+            case "${CLEAN_ARCH}" in
+                x64)      PRESET="linux-x64" ;;
+                x86)      PRESET="linux-x86" ;;
+                arm64)    PRESET="linux-arm64" ;;
+                arm32)    PRESET="linux-arm32" ;;
+                riscv64)  PRESET="linux-riscv64" ;;
+                riscv32)  PRESET="linux-riscv32" ;;
+                ppc64)    PRESET="linux-ppc64" ;;
+                ppc64le)  PRESET="linux-ppc64le" ;;
+                ppc32)    PRESET="linux-ppc32" ;;
+                s390x)    PRESET="linux-s390x" ;;
+                mips64)   PRESET="linux-mips64" ;;
+                mips64le) PRESET="linux-mips64le" ;;
+                mips32)   PRESET="linux-mips32" ;;
+                mips32le) PRESET="linux-mips32le" ;;
+                sparc64)  PRESET="linux-sparc64" ;;
+                *)        echo "[ERROR] Unknown arch '${CLEAN_ARCH}' on Linux"; exit 1 ;;
+            esac
+            ;;
+        macOS)
+            case "${CLEAN_ARCH}" in
+                x64)       PRESET="macos-x64" ;;
+                arm64)     PRESET="macos-arm64" ;;
+                universal) PRESET="macos-universal" ;;
+                *)         echo "[ERROR] Unknown arch '${CLEAN_ARCH}' on macOS"; exit 1 ;;
+            esac
+            ;;
+        FreeBSD|OpenBSD|NetBSD|DragonFly)
+            case "${CLEAN_ARCH}" in
+                x64)   PRESET="${HOST_OS,,}-x64" ;;
+                *)     echo "[ERROR] Unknown arch '${CLEAN_ARCH}' on ${HOST_OS}"; exit 1 ;;
+            esac
+            ;;
+        *)
+            echo "[ERROR] Unsupported OS: ${HOST_OS}"
+            exit 1
+            ;;
+    esac
+
+    BUILD_DIR="$(preset_to_build_dir "${PRESET}")"
+    do_clean_dir "${BUILD_DIR}"
+    exit 0
+fi
+
+# ========================================
+# Help action
+# ========================================
+if [ "${ACTION}" = "help" ] || [ "${ACTION}" = "-h" ] || [ "${ACTION}" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+# ========================================
+# Build action (default)
+# ========================================
+ARCH="${ACTION}"
+if [ -n "${ARCH}" ] && [ "${ARCH}" != "build" ]; then
+    :
+fi
+if [ "${ARCH}" = "build" ]; then
+    ARCH="${2:-}"
+fi
+
 echo "========================================"
 echo "  PXPT Racer Build Script (Linux/macOS)"
 echo "  Usage: ./build.sh [arch]"
@@ -9,14 +240,6 @@ echo "          ppc64, ppc64le, ppc32, s390x, mips64, mips64le,"
 echo "          mips32, mips32le, sparc64, universal (macOS)"
 echo "========================================"
 echo
-
-# ========================================
-# Parse architecture argument
-# ========================================
-ARCH="${1:-}"
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "${SCRIPT_DIR}"
 
 # ========================================
 # Architecture -> CMake preset mapping

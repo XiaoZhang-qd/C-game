@@ -1,13 +1,58 @@
 #!/usr/bin/env bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "${SCRIPT_DIR}"
+
+# ========================================
+# Parse arguments
+# ========================================
+ACTION="${1:-build}"
+
+if [ "${ACTION}" = "clean" ]; then
+    echo "========================================"
+    echo "  PXPT Racer - Clean All Build Artifacts"
+    echo "========================================"
+    echo
+
+    CLEAN_TARGET="${2:-all}"
+
+    if [ "${CLEAN_TARGET}" = "all" ] || [ "${CLEAN_TARGET}" = "*" ]; then
+        echo "[CLEAN] Cleaning ALL build directories..."
+        bash "${SCRIPT_DIR}/build.sh" clean all
+        if [ -f "${SCRIPT_DIR}/build.bat" ]; then
+            echo "[CLEAN] (Windows users can use: build.bat clean all)"
+        fi
+        echo "[CLEAN] Done."
+        exit 0
+    else
+        echo "[CLEAN] Cleaning ${CLEAN_TARGET}..."
+        bash "${SCRIPT_DIR}/build.sh" clean "${CLEAN_TARGET}"
+        exit 0
+    fi
+fi
+
+if [ "${ACTION}" = "help" ] || [ "${ACTION}" = "-h" ] || [ "${ACTION}" = "--help" ]; then
+    echo "========================================"
+    echo "  PXPT Racer - Build All Platforms"
+    echo "========================================"
+    echo
+    echo "Usage:"
+    echo "  ./build-all.sh                  Build all platforms"
+    echo "  ./build-all.sh clean [arch]     Clean build artifacts (or 'all')"
+    echo "  ./build-all.sh help             Show this help"
+    echo
+    echo "Examples:"
+    echo "  ./build-all.sh                  Build all detected platforms"
+    echo "  ./build-all.sh clean all        Clean ALL build artifacts"
+    echo "  ./build-all.sh clean x64        Clean x64 build artifacts"
+    exit 0
+fi
+
 echo "========================================"
 echo "  PXPT Racer - Build All Platforms"
 echo "========================================"
 echo
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "${SCRIPT_DIR}"
 
 PASSED=0
 FAILED=0

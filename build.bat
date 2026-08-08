@@ -1,6 +1,21 @@
 @echo off
+
+REM ========================================
+REM Parse arguments
+REM ========================================
+set "ACTION=%~1"
+set "ARG2=%~2"
+
+if /i "%ACTION%"=="help" goto :show_help
+if /i "%ACTION%"=="-h" goto :show_help
+if /i "%ACTION%"=="--help" goto :show_help
+if /i "%ACTION%"=="clean" goto :clean_action
+
 setlocal EnableDelayedExpansion
 
+REM ========================================
+REM Build mode header
+REM ========================================
 echo ========================================
 echo   PXPT Racer Build Script (Windows)
 echo   Usage: build.bat [arch]
@@ -8,10 +23,8 @@ echo     arch: x64 (default), x86, arm64
 echo ========================================
 echo.
 
-REM ========================================
-REM Parse architecture argument
-REM ========================================
-set "ARCH=%~1"
+REM Build mode: ACTION is the arch
+set "ARCH=%ACTION%"
 
 if "%ARCH%"=="" goto :native_build
 if /i "%ARCH%"=="x64" goto :preset_build
@@ -21,6 +34,110 @@ if /i "%ARCH%"=="arm64" goto :preset_build
 echo [ERROR] Unsupported architecture "%ARCH%"
 echo         Supported: x64, x86, arm64
 echo.
+goto :eof
+
+REM ========================================
+REM Show help
+REM ========================================
+:show_help
+echo.
+echo   PXPT Racer Build Script (Windows)
+echo   Usage:
+echo     build.bat [arch]                  Build (default)
+echo     build.bat clean [arch]            Clean specific arch build
+echo     build.bat clean all               Clean ALL build directories
+echo     build.bat help                    Show this help
+echo.
+echo   arch: x64 (default), x86, arm64
+echo.
+echo   Examples:
+echo     build.bat              Build native architecture
+echo     build.bat x64          Build for x64
+echo     build.bat clean        Clean x64 build (default)
+echo     build.bat clean x86    Clean x86 build
+echo     build.bat clean all    Clean all build directories
+echo.
+goto :eof
+
+REM ========================================
+REM Clean action
+REM ========================================
+:clean_action
+set "CLEAN_ARCH=%ARG2%"
+
+if /i "%CLEAN_ARCH%"=="all" goto :clean_all
+if /i "%CLEAN_ARCH%"=="*" goto :clean_all
+
+if not defined CLEAN_ARCH echo [CLEAN] No architecture specified, cleaning default: x64& set "CLEAN_ARCH=x64"
+
+set "CLEAN_DIR="
+if /i "%CLEAN_ARCH%"=="x64" set "CLEAN_DIR=build"
+if /i "%CLEAN_ARCH%"=="x86" set "CLEAN_DIR=build-win32"
+if /i "%CLEAN_ARCH%"=="arm64" set "CLEAN_DIR=build-win-arm64"
+
+if not defined CLEAN_DIR echo [ERROR] Unknown architecture "%CLEAN_ARCH%"& echo         Supported: x64, x86, arm64& goto :eof
+
+echo [CLEAN] Cleaning %CLEAN_ARCH% -^> %CLEAN_DIR%
+if not exist "%CLEAN_DIR%" echo [CLEAN] Skipping (not found): %CLEAN_DIR%& goto :eof
+echo [CLEAN] Removing %CLEAN_DIR%...
+rmdir /s /q "%CLEAN_DIR%"
+echo [CLEAN] Done: %CLEAN_DIR%
+goto :eof
+
+:clean_all
+echo ========================================
+echo   Cleaning ALL build artifacts
+echo ========================================
+echo.
+
+call :clean_one build
+call :clean_one build-win32
+call :clean_one build-win-arm64
+call :clean_one build-linux-x86
+call :clean_one build-linux-arm32
+call :clean_one build-linux-arm64
+call :clean_one build-linux-riscv64
+call :clean_one build-linux-riscv32
+call :clean_one build-linux-ppc64
+call :clean_one build-linux-ppc64le
+call :clean_one build-linux-ppc32
+call :clean_one build-linux-s390x
+call :clean_one build-linux-mips64
+call :clean_one build-linux-mips64le
+call :clean_one build-linux-mips32
+call :clean_one build-linux-mips32le
+call :clean_one build-linux-sparc64
+call :clean_one build-drm
+call :clean_one build-chromeos
+call :clean_one build-chromeos-x64
+call :clean_one build-macos-x64
+call :clean_one build-macos-arm64
+call :clean_one build-macos-universal
+call :clean_one build-freebsd
+call :clean_one build-openbsd
+call :clean_one build-netbsd
+call :clean_one build-dragonfly
+call :clean_one build-android-arm64
+call :clean_one build-android-armeabi-v7a
+call :clean_one build-android-x86
+call :clean_one build-android-x86_64
+call :clean_one build-ios
+call :clean_one build-ios-theos
+call :clean_one build-ios-sim
+call :clean_one build-ios-sim-theos
+call :clean_one build-web
+call :clean_one build-harmonyos-arm64
+call :clean_one build-mingw-x64
+call :clean_one build-mingw-x86
+echo.
+echo [CLEAN] All build artifacts cleaned.
+goto :eof
+
+:clean_one
+if not exist "%~1" echo [CLEAN] Skipping (not found): %~1& goto :eof
+echo [CLEAN] Removing %~1...
+rmdir /s /q "%~1"
+echo [CLEAN] Done: %~1
 goto :eof
 
 REM ========================================

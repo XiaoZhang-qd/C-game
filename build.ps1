@@ -3,15 +3,145 @@
 # Works on Windows, Linux, and macOS
 # ========================================
 
+param(
+    [string]$Arch = "",
+    [switch]$Clean = $false,
+    [switch]$CleanAll = $false,
+    [switch]$Help = $false
+)
+
 $ErrorActionPreference = "Stop"
 
-# ========================================
-# Parse arguments
-# ========================================
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-param(
-    [string]$Arch = ""
-)
+# ========================================
+# Help
+# ========================================
+if ($Help) {
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "  PXPT Racer Build Script" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Usage:" -ForegroundColor White
+    Write-Host "  ./build.ps1 [-Arch ARCH]              Build (default)" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean [-Arch ARCH]       Clean specific arch build" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean -CleanAll          Clean ALL build directories" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Help                     Show this help" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Available architectures:" -ForegroundColor White
+    Write-Host "  x86      - 32-bit Intel/AMD" -ForegroundColor Gray
+    Write-Host "  x64      - 64-bit Intel/AMD" -ForegroundColor Gray
+    Write-Host "  arm32    - 32-bit ARM" -ForegroundColor Gray
+    Write-Host "  arm64    - 64-bit ARM" -ForegroundColor Gray
+    Write-Host "  riscv64  - 64-bit RISC-V" -ForegroundColor Gray
+    Write-Host "  mips64   - 64-bit MIPS" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor White
+    Write-Host "  ./build.ps1 -Arch x64          Build x64" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean -Arch x86   Clean x86 build" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean -CleanAll   Clean ALL builds" -ForegroundColor Gray
+    exit 0
+}
+
+# ========================================
+# Clean action
+# ========================================
+if ($Clean -or $CleanAll) {
+    Set-Location $scriptDir
+
+    $allBuildDirs = @(
+        "build",
+        "build-win32",
+        "build-win-arm64",
+        "build-linux-x86",
+        "build-linux-arm32",
+        "build-linux-arm64",
+        "build-linux-riscv64",
+        "build-linux-riscv32",
+        "build-linux-ppc64",
+        "build-linux-ppc64le",
+        "build-linux-ppc32",
+        "build-linux-s390x",
+        "build-linux-mips64",
+        "build-linux-mips64le",
+        "build-linux-mips32",
+        "build-linux-mips32le",
+        "build-linux-sparc64",
+        "build-drm",
+        "build-chromeos",
+        "build-chromeos-x64",
+        "build-macos-x64",
+        "build-macos-arm64",
+        "build-macos-universal",
+        "build-freebsd",
+        "build-openbsd",
+        "build-netbsd",
+        "build-dragonfly",
+        "build-android-arm64",
+        "build-android-armeabi-v7a",
+        "build-android-x86",
+        "build-android-x86_64",
+        "build-ios",
+        "build-ios-theos",
+        "build-ios-sim",
+        "build-ios-sim-theos",
+        "build-web",
+        "build-harmonyos-arm64",
+        "build-mingw-x64",
+        "build-mingw-x86"
+    )
+
+    $archToDir = @{
+        "x64"     = "build"
+        "x86"     = "build-win32"
+        "arm64"   = "build-win-arm64"
+        "arm32"   = "build-linux-arm32"
+        "riscv64" = "build-linux-riscv64"
+        "mips64"  = "build-linux-mips64"
+    }
+
+    function Remove-BuildDir($dir) {
+        $fullPath = Join-Path $scriptDir $dir
+        if (Test-Path $fullPath) {
+            Write-Host "[CLEAN] Removing $dir..." -ForegroundColor Yellow
+            Remove-Item -Recurse -Force $fullPath
+            Write-Host "[CLEAN] Done: $dir" -ForegroundColor Green
+        } else {
+            Write-Host "[CLEAN] Skipping (not found): $dir" -ForegroundColor DarkGray
+        }
+    }
+
+    if ($CleanAll) {
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "  Cleaning ALL build artifacts" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
+        foreach ($dir in $allBuildDirs) {
+            Remove-BuildDir $dir
+        }
+        Write-Host ""
+        Write-Host "[CLEAN] All build artifacts cleaned." -ForegroundColor Green
+        exit 0
+    }
+
+    # Clean specific arch
+    $cleanArch = if ($Arch) { $Arch } else { "x64" }
+
+    if (-not $archToDir.ContainsKey($cleanArch)) {
+        Write-Host "[ERROR] Unknown architecture: $cleanArch" -ForegroundColor Red
+        Write-Host "        Valid: $($archToDir.Keys -join ', ')" -ForegroundColor Red
+        exit 1
+    }
+
+    $dir = $archToDir[$cleanArch]
+    Write-Host "[CLEAN] Cleaning $cleanArch -> $dir" -ForegroundColor Cyan
+    Remove-BuildDir $dir
+    exit 0
+}
+
+# ========================================
+# Build action (default)
+# ========================================
 
 $validArchs = @("x86", "x64", "arm32", "arm64", "riscv64", "mips64")
 
@@ -22,15 +152,26 @@ if (-not $Arch) {
     Write-Host ""
     Write-Host "[INFO] No architecture specified. Building native architecture." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "Usage: ./build.ps1 [-Arch ARCH]" -ForegroundColor White
+    Write-Host "Usage: ./build.ps1 [-Arch ARCH] [Options]" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Options:" -ForegroundColor White
+    Write-Host "  -Arch ARCH         Build for specific architecture" -ForegroundColor Gray
+    Write-Host "  -Clean             Clean build artifacts" -ForegroundColor Gray
+    Write-Host "  -Clean -CleanAll   Clean ALL build artifacts" -ForegroundColor Gray
+    Write-Host "  -Help              Show this help" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Available architectures:" -ForegroundColor White
-    Write-Host "  x86      - 32-bit Intel/AMD"
-    Write-Host "  x64      - 64-bit Intel/AMD (default)"
-    Write-Host "  arm32    - 32-bit ARM"
-    Write-Host "  arm64    - 64-bit ARM"
-    Write-Host "  riscv64  - 64-bit RISC-V"
-    Write-Host "  mips64   - 64-bit MIPS"
+    Write-Host "  x86      - 32-bit Intel/AMD" -ForegroundColor Gray
+    Write-Host "  x64      - 64-bit Intel/AMD (default)" -ForegroundColor Gray
+    Write-Host "  arm32    - 32-bit ARM" -ForegroundColor Gray
+    Write-Host "  arm64    - 64-bit ARM" -ForegroundColor Gray
+    Write-Host "  riscv64  - 64-bit RISC-V" -ForegroundColor Gray
+    Write-Host "  mips64   - 64-bit MIPS" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Examples:" -ForegroundColor White
+    Write-Host "  ./build.ps1 -Arch x64          Build x64" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean -Arch x86   Clean x86 build" -ForegroundColor Gray
+    Write-Host "  ./build.ps1 -Clean -CleanAll   Clean ALL builds" -ForegroundColor Gray
     Write-Host ""
     $Arch = "x64"
 }
