@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_PLATFORM_H
+#ifndef CGAME_PLATFORM_H
 #define CGAME_PLATFORM_H
 
 /*

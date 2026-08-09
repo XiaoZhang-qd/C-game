@@ -1,4 +1,4 @@
-﻿#include "server.h"
+#include "server.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -98,10 +98,24 @@ static int is_name_taken(
 
 
 
+static void send_broadcast(
+    CGAME_Server* server,
+    int type,
+    const char* name,
+    const char* message
+);
+
 static void disconnect_player(
-    CGAME_Player* player
+    CGAME_Player* player,
+    CGAME_Server* server
 )
 {
+    if (player->logged_in)
+    {
+        char leave_msg[128];
+        snprintf(leave_msg, sizeof(leave_msg), "%s left the server", player->name);
+        send_broadcast(server, BROADCAST_LEAVE, player->name, leave_msg);
+    }
 
     cgame_socket_close(
         player->tcp
@@ -219,6 +233,36 @@ static void broadcast_players(
 
     }
 
+
+}
+
+
+static void send_broadcast(
+    CGAME_Server* server,
+    int type,
+    const char* name,
+    const char* message
+)
+{
+    CGAME_Broadcast bc;
+    memset(&bc, 0, sizeof(bc));
+    bc.type = type;
+    if (name) strncpy(bc.name, name, CGAME_MAX_NAME - 1);
+    if (message) strncpy(bc.message, message, sizeof(bc.message) - 1);
+
+    CGAME_Packet packet;
+    memset(&packet, 0, sizeof(packet));
+    packet.header.type = PKT_BROADCAST;
+    packet.header.size = sizeof(CGAME_Broadcast);
+    memcpy(packet.data, &bc, sizeof(bc));
+
+    for (int i = 0; i < server->max_players; i++)
+    {
+        if (server->players[i].logged_in)
+        {
+            cgame_send(server->players[i].tcp, &packet, sizeof(packet));
+        }
+    }
 }
 
 
@@ -227,7 +271,8 @@ int server_start(
     CGAME_Server* server,
     const char* ip,
     int port,
-    int max_players
+    int max_players,
+    const char* password
 )
 {
 
@@ -247,6 +292,12 @@ int server_start(
 
     server->max_players =
         max_players;
+
+    if (password && strlen(password) > 0)
+    {
+        strncpy(server->password, password, 63);
+        server->password[63] = '\0';
+    }
 
     if(
         cgame_socket_init()!=0
@@ -318,6 +369,7 @@ int server_start(
         server->players[i].state.id = -1;
         server->players[i].state.hp = 100;
         server->players[i].state.dead = 0;
+        server->players[i].last_active_frame = 0;
 
     }
 
@@ -349,6 +401,9 @@ void server_update(
         !server->running
     )
         return;
+
+    static int server_frame = 0;
+    server_frame++;
 
     struct sockaddr_in client_addr;
 
@@ -409,6 +464,7 @@ void server_update(
                 player->state.name[0] = '\0';
                 player->state.hp = 100;
                 player->state.dead = 0;
+                player->last_active_frame = 0;
 
                 printf(
                     "Player %d connected (awaiting login)\n",
@@ -467,7 +523,8 @@ void server_update(
                 i
             );
             disconnect_player(
-                player
+                player,
+                server
             );
             continue;
 
@@ -476,7 +533,23 @@ void server_update(
         if(
             r < 0
         )
+        {
+            if (player->logged_in &&
+                (server_frame - player->last_active_frame) > 1000)
+            {
+                printf(
+                    "Player %d timed out (inactive)\n",
+                    i
+                );
+                disconnect_player(
+                    player,
+                    server
+                );
+            }
             continue;
+        }
+
+        player->last_active_frame = server_frame;
 
         if(
             packet.header.type
@@ -484,6 +557,22 @@ void server_update(
             PKT_LOGIN
         )
         {
+            if (strlen(server->password) > 0)
+            {
+                send_login_response(
+                    player->tcp,
+                    LOGIN_SERVER_LOCKED
+                );
+                printf(
+                    "Player %d rejected: server requires password\n",
+                    i
+                );
+                disconnect_player(
+                    player,
+                    server
+                );
+                continue;
+            }
 
             CGAME_Login* login =
                 (CGAME_Login*)packet.data;
@@ -493,7 +582,6 @@ void server_update(
                 == 0
             )
             {
-
                 send_login_response(
                     player->tcp,
                     LOGIN_NAME_EMPTY
@@ -503,10 +591,10 @@ void server_update(
                     i
                 );
                 disconnect_player(
-                    player
+                    player,
+                    server
                 );
                 continue;
-
             }
 
             if(
@@ -517,7 +605,6 @@ void server_update(
                 )
             )
             {
-
                 send_login_response(
                     player->tcp,
                     LOGIN_NAME_TAKEN
@@ -528,10 +615,10 @@ void server_update(
                     login->name
                 );
                 disconnect_player(
-                    player
+                    player,
+                    server
                 );
                 continue;
-
             }
 
             strncpy(
@@ -562,6 +649,116 @@ void server_update(
                 player->name
             );
 
+            {
+                char join_msg[128];
+                snprintf(join_msg, sizeof(join_msg), "%s joined the server", player->name);
+                send_broadcast(server, BROADCAST_JOIN, player->name, join_msg);
+            }
+        }
+        else if(
+            packet.header.type
+            ==
+            PKT_LOGIN_PASSWORD
+        )
+        {
+            CGAME_LoginPassword* login =
+                (CGAME_LoginPassword*)packet.data;
+
+            if (strlen(server->password) > 0 &&
+                strcmp(login->password, server->password) != 0)
+            {
+                send_login_response(
+                    player->tcp,
+                    LOGIN_WRONG_PASSWORD
+                );
+                printf(
+                    "Player %d rejected: wrong password\n",
+                    i
+                );
+                disconnect_player(
+                    player,
+                    server
+                );
+                continue;
+            }
+
+            if(
+                strlen(login->name)
+                == 0
+            )
+            {
+                send_login_response(
+                    player->tcp,
+                    LOGIN_NAME_EMPTY
+                );
+                printf(
+                    "Player %d rejected: empty name\n",
+                    i
+                );
+                disconnect_player(
+                    player,
+                    server
+                );
+                continue;
+            }
+
+            if(
+                is_name_taken(
+                    server,
+                    login->name,
+                    i
+                )
+            )
+            {
+                send_login_response(
+                    player->tcp,
+                    LOGIN_NAME_TAKEN
+                );
+                printf(
+                    "Player %d rejected: name '%s' already taken\n",
+                    i,
+                    login->name
+                );
+                disconnect_player(
+                    player,
+                    server
+                );
+                continue;
+            }
+
+            strncpy(
+                player->name,
+                login->name,
+                CGAME_MAX_NAME - 1
+            );
+            player->name[CGAME_MAX_NAME - 1] = '\0';
+            player->logged_in = 1;
+
+            send_login_response(
+                player->tcp,
+                LOGIN_OK
+            );
+
+            {
+                CGAME_Packet cfg_pkt;
+                memset(&cfg_pkt, 0, sizeof(cfg_pkt));
+                cfg_pkt.header.type = PKT_SERVER_CONFIG;
+                cfg_pkt.header.size = sizeof(CGAME_ServerConfig);
+                memcpy(cfg_pkt.data, &server->config, sizeof(CGAME_ServerConfig));
+                cgame_send(player->tcp, &cfg_pkt, sizeof(cfg_pkt));
+            }
+
+            printf(
+                "Player %d logged in: %s\n",
+                i,
+                player->name
+            );
+
+            {
+                char join_msg[128];
+                snprintf(join_msg, sizeof(join_msg), "%s joined the server", player->name);
+                send_broadcast(server, BROADCAST_JOIN, player->name, join_msg);
+            }
         }
         else if(
             packet.header.type
@@ -585,6 +782,7 @@ void server_update(
             CGAME_PlayerState* state =
                 (CGAME_PlayerState*)packet.data;
 
+            int was_dead = player->state.dead;
             player->state.x =
                 state->x;
             player->state.y =
@@ -599,6 +797,13 @@ void server_update(
                 state->boost_timer;
             player->state.shield_timer =
                 state->shield_timer;
+
+            if (!was_dead && state->dead)
+            {
+                char death_msg[128];
+                snprintf(death_msg, sizeof(death_msg), "%s died", player->name);
+                send_broadcast(server, BROADCAST_DEATH, player->name, death_msg);
+            }
 
         }
         else if(

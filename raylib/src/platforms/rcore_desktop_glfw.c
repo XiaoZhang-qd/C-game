@@ -53,6 +53,7 @@
 
 // Support retrieving native window handlers
 #if defined(_WIN32)
+    // Win32 API support for WM_CLOSE interception (no windows.h to avoid symbol conflicts)
     #if !defined(HWND) && !defined(_MSVC_LANG)
         #define HWND void*
     #elif !defined(HWND) && defined(_MSVC_LANG)
@@ -60,6 +61,10 @@
     #endif
 
     #include "../external/win32_clipboard.h" // Clipboard image copy-paste
+
+    // Include clipboard implementation to get <minwindef.h> types (LONG_PTR, WPARAM, LRESULT, etc.)
+    #define WIN32_CLIPBOARD_IMPLEMENTATION
+    #include "../external/win32_clipboard.h"
 
     #define GLFW_EXPOSE_NATIVE_WIN32
     #define GLFW_NATIVE_INCLUDE_NONE // To avoid some symbols re-definition in windows.h
@@ -120,6 +125,55 @@ extern CoreData CORE;                   // Global CORE state context
 
 static PlatformData platform = { 0 };   // Platform specific data
 
+#if defined(_WIN32)
+// Win32 window subclassing for WM_CLOSE interception
+// NOTE: Using extern declarations to avoid including <windows.h> which conflicts with raylib
+
+// Win32 constants and typedefs
+// Types like LONG_PTR, INT_PTR, WPARAM, LPARAM, LRESULT, UINT, HWND are provided by <minwindef.h>
+// which is already included via win32_clipboard.h
+#ifndef GWL_WNDPROC
+#define GWL_WNDPROC (-4)
+#endif
+#ifndef WM_CLOSE
+#define WM_CLOSE 0x0010
+#endif
+#ifndef WINAPI
+#define WINAPI __stdcall
+#endif
+
+// Window procedure type (WNDPROC) - not provided by <minwindef.h>
+#ifndef _WNDPROC_DEFINED
+#define _WNDPROC_DEFINED
+typedef LRESULT (WINAPI* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+#endif
+
+// External Win32 function declarations (resolved at link time from user32.dll)
+extern LONG_PTR WINAPI SetWindowLongPtrW(HWND hwnd, int nIndex, LONG_PTR dwNewLong);
+extern LRESULT WINAPI CallWindowProcW(WNDPROC lpPrevWndFunc, HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+extern LRESULT WINAPI DefWindowProcW(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+
+// Global state
+static WNDPROC originalWndProc = NULL;
+static HWND subclassHwnd = NULL;
+
+// Subclass window procedure to intercept WM_CLOSE
+static LRESULT WINAPI SubclassWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    // Block WM_CLOSE when window close is disabled (during gameplay)
+    if ((msg == WM_CLOSE) && CORE.Window.closeDisabled)
+    {
+        return 0;
+    }
+    // Forward all other messages to original window procedure
+    if (originalWndProc)
+    {
+        return CallWindowProcW(originalWndProc, hwnd, msg, wParam, lParam);
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+#endif
+
 //----------------------------------------------------------------------------------
 // Module Internal Functions Declaration
 //----------------------------------------------------------------------------------
@@ -166,6 +220,7 @@ static void DeallocateWrapper(void *block, void *user);                         
 // NOTE: By default, if KEY_ESCAPE pressed or window close icon clicked
 bool WindowShouldClose(void)
 {
+    if (CORE.Window.closeDisabled) return false;
     if (CORE.Window.ready) return CORE.Window.shouldClose;
     else return true;
 }
@@ -1411,6 +1466,8 @@ void PollInputEvents(void)
 
     // Reset close status for next frame
     glfwSetWindowShouldClose(platform.handle, GLFW_FALSE);
+
+    if (CORE.Window.closeDisabled) CORE.Window.shouldClose = false;
 }
 
 //----------------------------------------------------------------------------------
@@ -1823,6 +1880,15 @@ int InitPlatform(void)
     glfwSetJoystickCallback(JoystickCallback);
     glfwSetInputMode(platform.handle, GLFW_LOCK_KEY_MODS, GLFW_TRUE); // Enable lock keys modifiers (CAPS, NUM)
 
+#if defined(_WIN32)
+    // Subclass window to intercept WM_CLOSE when closeDisabled is true
+    subclassHwnd = (HWND)glfwGetWin32Window(platform.handle);
+    if (subclassHwnd)
+    {
+        originalWndProc = (WNDPROC)SetWindowLongPtrW(subclassHwnd, GWL_WNDPROC, (LONG_PTR)SubclassWndProc);
+    }
+#endif
+
     // Retrieve gamepad names
     for (int i = 0; i < MAX_GAMEPADS; i++)
     {
@@ -1871,6 +1937,16 @@ int InitPlatform(void)
 // Close platform
 void ClosePlatform(void)
 {
+#if defined(_WIN32)
+    // Restore original window procedure before destroying window
+    if (originalWndProc && subclassHwnd)
+    {
+        SetWindowLongPtrW(subclassHwnd, GWL_WNDPROC, (LONG_PTR)originalWndProc);
+        originalWndProc = NULL;
+        subclassHwnd = NULL;
+    }
+#endif
+
     glfwDestroyWindow(platform.handle);
     glfwTerminate();
 
@@ -2076,7 +2152,7 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
     }
 
     // Check the exit key to set close window
-    if ((key == CORE.Input.Keyboard.exitKey) && (action == GLFW_PRESS)) glfwSetWindowShouldClose(platform.handle, GLFW_TRUE);
+    if ((key == CORE.Input.Keyboard.exitKey) && (action == GLFW_PRESS) && !CORE.Window.closeDisabled) glfwSetWindowShouldClose(platform.handle, GLFW_TRUE);
 }
 
 // GLFW3: Char callback, runs on key pressed to get unicode codepoint value

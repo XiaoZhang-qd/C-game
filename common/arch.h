@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_ARCH_H
+#ifndef CGAME_ARCH_H
 #define CGAME_ARCH_H
 
 /*

@@ -812,7 +812,10 @@ static bool IsWglExtensionAvailable(HDC hdc, const char *extension);
 // Check if application should close
 bool WindowShouldClose(void)
 {
-    return CORE.Window.shouldClose;
+    if (CORE.Window.closeDisabled) return false;
+    bool result = CORE.Window.shouldClose;
+    CORE.Window.shouldClose = false;
+    return result;
 }
 
 // Toggle fullscreen mode
@@ -2034,7 +2037,7 @@ static void HandleKey(WPARAM wparam, LPARAM lparam, char state)
     {
         CORE.Input.Keyboard.currentKeyState[key] = state;
 
-        if ((key == KEY_ESCAPE) && (state == 1)) CORE.Window.shouldClose = true;
+        if ((key == CORE.Input.Keyboard.exitKey) && (state == 1)) CORE.Window.shouldClose = true;
     }
     else TRACELOG(LOG_WARNING, "INPUT: Unknown (or currently unhandled) virtual keycode %d (0x%x)", wparam, wparam);
 

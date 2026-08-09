@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_GAME_H
+#ifndef CGAME_GAME_H
 #define CGAME_GAME_H
 
 
@@ -98,6 +98,7 @@ int game_get_skill2_cooldown_max();
 
 void game_add_remote_bomb(int player_id, float x, float y, float timer);
 
-
+void game_set_theme(int theme);
+int game_get_theme(void);
 
 #endif

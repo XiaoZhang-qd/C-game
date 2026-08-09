@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_HIDE_TERMINAL_H
+#ifndef CGAME_HIDE_TERMINAL_H
 #define CGAME_HIDE_TERMINAL_H
 
 #if defined(_WIN32) || defined(_WIN64)

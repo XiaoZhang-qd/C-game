@@ -1,4 +1,4 @@
-﻿#include "server.h"
+#include "server.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -23,6 +23,8 @@ int main(
     int bomb_cooldown = 30;
     int skill1_cooldown = 300;
     int skill2_cooldown = 300;
+
+    char password[64] = "";
 
 
 
@@ -125,6 +127,23 @@ int main(
 
 
         else if(
+            (strcmp(argv[i], "-password")==0 || strcmp(argv[i], "--password")==0)
+            &&
+            i+1<argc
+        )
+        {
+
+            strncpy(
+                password,
+                argv[++i],
+                63
+            );
+            password[63] = '\0';
+
+        }
+
+
+        else if(
             (strcmp(argv[i], "-help")==0 || strcmp(argv[i], "--help")==0 || strcmp(argv[i], "-h")==0)
         )
         {
@@ -134,6 +153,7 @@ int main(
                 "-ip <address>        Server IP (default: 0.0.0.0)\n"
                 "-port <port>        Server port (default: 25565)\n"
                 "-max <players>      Max players (default: 8)\n"
+                "-password <pass>    Server password (default: none)\n"
                 "-bomb <cooldown>    Bomb cooldown in frames (default: 30)\n"
                 "-skill1 <cooldown>  Skill1 cooldown in frames (default: 300)\n"
                 "-skill2 <cooldown>  Skill2 cooldown in frames (default: 300)\n\n"
@@ -174,6 +194,11 @@ int main(
     );
 
     printf(
+        "PASS : %s\n",
+        strlen(password) > 0 ? "SET" : "NONE"
+    );
+
+    printf(
         "BOMB CD : %d frames (%.1fs)\n",
         bomb_cooldown,
         (float)bomb_cooldown / 60.0f
@@ -202,7 +227,8 @@ int main(
             &server,
             ip,
             port,
-            max_players
+            max_players,
+            password
         )
         !=0
     )

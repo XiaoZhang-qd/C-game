@@ -299,6 +299,7 @@ typedef struct CoreData {
         unsigned int flags;                 // Configuration flags (bit based), keeps window state
         bool ready;                         // Check if window has been initialized successfully
         bool shouldClose;                   // Check if window set for closing
+        bool closeDisabled;                 // If true, WindowShouldClose() always returns false
         bool resizedLastFrame;              // Check if window has been resized last frame
         bool eventWaiting;                  // Wait for events before ending frame
         bool usingFbo;                      // Using FBO (RenderTexture) for rendering instead of default framebuffer
@@ -734,6 +735,7 @@ void InitWindow(int width, int height, const char *title)
 
     CORE.Time.frameCounter = 0;
     CORE.Window.shouldClose = false;
+    CORE.Window.closeDisabled = false;
 
     // Initialize random seed
     SetRandomSeed((unsigned int)time(NULL));
@@ -3916,6 +3918,18 @@ int GetCharPressed(void)
 void SetExitKey(int key)
 {
     CORE.Input.Keyboard.exitKey = key;
+}
+
+// Disable window close: WindowShouldClose() always returns false
+void DisableWindowClose(void)
+{
+    CORE.Window.closeDisabled = true;
+}
+
+// Enable window close: WindowShouldClose() works normally
+void EnableWindowClose(void)
+{
+    CORE.Window.closeDisabled = false;
 }
 
 //----------------------------------------------------------------------------------

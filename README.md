@@ -50,7 +50,7 @@
 | 语言 | C99 | 无任何 C++ 依赖 |
 | 构建 | CMake + Ninja/Make | 跨平台构建系统 |
 | 游戏引擎 | [raylib](https://www.raylib.com/) | 已包含在 `raylib/` 目录中 |
-| GUI 库 | [raygui](https://github.com/raysan5/raygui) | 已包含在 `raygui-5.0/` 目录中 |
+| GUI 库 | [raygui](https://github.com/raysan5/raygui)(已包含在 `raygui-5.0/` 目录中) | [raylib](https://www.raylib.com/) 提供的 GUI 库，用于绘制菜单、输入框、按钮等 |
 | 网络 | 原生 POSIX / Winsock2 / Emscripten Socket | 无第三方网络库 |
 | 协议 | 自定义二进制协议 | 固定长度头部 + 数据体 |
 

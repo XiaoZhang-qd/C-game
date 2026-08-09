@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_SERVER_H
+#ifndef CGAME_SERVER_H
 #define CGAME_SERVER_H
 
 
@@ -23,6 +23,8 @@ char name[CGAME_MAX_NAME];
 
 CGAME_PlayerState state;
 
+int last_active_frame;
+
 }CGAME_Player;
 
 
@@ -40,6 +42,8 @@ int running;
 
 int max_players;
 
+char password[64];
+
 CGAME_ServerConfig config;
 
 CGAME_Player players[CGAME_MAX_PLAYERS];
@@ -54,7 +58,8 @@ int server_start(
 CGAME_Server* server,
 const char* ip,
 int port,
-int max_players
+int max_players,
+const char* password
 );
 
 

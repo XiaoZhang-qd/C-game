@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_PROTOCOL_H
+#ifndef CGAME_PROTOCOL_H
 #define CGAME_PROTOCOL_H
 
 
@@ -13,10 +13,19 @@
 #define PKT_BOMB_EXPLOSION 5
 #define PKT_SERVER_CONFIG  6
 #define PKT_BOMB_PLACED    7
+#define PKT_BROADCAST      8
+#define PKT_LOGIN_PASSWORD 9
 
 #define LOGIN_OK           1
 #define LOGIN_NAME_TAKEN   2
 #define LOGIN_NAME_EMPTY   3
+#define LOGIN_WRONG_PASSWORD 4
+#define LOGIN_SERVER_LOCKED 5
+
+#define BROADCAST_JOIN     1
+#define BROADCAST_LEAVE    2
+#define BROADCAST_DEATH    3
+#define BROADCAST_SERVER   4
 
 
 
@@ -73,6 +82,30 @@ char name[CGAME_MAX_NAME];
 
 
 } CGAME_Login;
+
+
+typedef struct
+{
+
+char name[CGAME_MAX_NAME];
+
+char password[64];
+
+
+} CGAME_LoginPassword;
+
+
+typedef struct
+{
+
+int type;
+
+char name[CGAME_MAX_NAME];
+
+char message[128];
+
+
+} CGAME_Broadcast;
 
 
 

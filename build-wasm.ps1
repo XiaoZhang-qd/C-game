@@ -1,4 +1,4 @@
-﻿# ========================================
+# ========================================
 # CGame Racer WebAssembly Build (PowerShell)
 # Works on Windows, Linux, and macOS
 # ========================================

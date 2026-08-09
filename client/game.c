@@ -1,4 +1,4 @@
-﻿#include "game.h"
+#include "game.h"
 
 #include "raylib.h"
 
@@ -25,6 +25,8 @@ static CGAME_ServerConfig server_cfg;
 static int config_received = 0;
 
 static int controls_visible = 1;
+
+static int game_theme = 0;
 
 static int btn_up_pressed = 0;
 static int btn_down_pressed = 0;
@@ -153,6 +155,16 @@ static int is_skill2_key()
     return IsKeyPressed(KEY_K) || IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_KP_2);
 }
 
+
+void game_set_theme(int theme)
+{
+    game_theme = theme;
+}
+
+int game_get_theme(void)
+{
+    return game_theme;
+}
 
 void game_init()
 {
@@ -371,43 +383,66 @@ static void draw_button(Rectangle rect, const char* label, Color color, int pres
     Color fill = pressed ? color : (Color){ color.r, color.g, color.b, 120 };
     Color border = (Color){ color.r, color.g, color.b, 200 };
 
+    Color label_col = game_theme == 0 ? WHITE : (Color){ 30, 30, 40, 255 };
     DrawRectangleRec(rect, fill);
     DrawRectangleLinesEx(rect, 2, border);
-    DrawText(label, rect.x + rect.width/2 - 10, rect.y + rect.height/2 - 8, 16, WHITE);
+    DrawText(label, rect.x + rect.width/2 - 10, rect.y + rect.height/2 - 8, 16, label_col);
 }
 
 
-static void draw_hp_bar(float x, float y, int hp, int max_hp)
+static void draw_hp_bar(float x, float y, int hp, int max_hp, Color text_col)
 {
     float bar_w = 50.0f;
     float bar_h = 5.0f;
     float pct = (float)hp / (float)max_hp;
 
-    DrawRectangle(x - bar_w/2, y, bar_w, bar_h, DARKGRAY);
+    Color bg = game_theme == 0 ? (Color){ 60, 60, 60, 255 } : (Color){ 180, 180, 180, 255 };
+    DrawRectangle(x - bar_w/2, y, bar_w, bar_h, bg);
 
     Color hp_color = GREEN;
     if (pct < 0.5f) hp_color = YELLOW;
     if (pct < 0.25f) hp_color = RED;
 
     DrawRectangle(x - bar_w/2, y, bar_w * pct, bar_h, hp_color);
-    DrawRectangleLinesEx((Rectangle){ x - bar_w/2, y, bar_w, bar_h }, 1, WHITE);
+    DrawRectangleLinesEx((Rectangle){ x - bar_w/2, y, bar_w, bar_h }, 1, text_col);
 }
 
 
 void game_draw()
 {
+    Color bg_color, text_color, dim_text_color, border_color, panel_color, button_color;
+
+    if (game_theme == 0)
+    {
+        bg_color = (Color){ 15, 15, 25, 255 };
+        text_color = WHITE;
+        dim_text_color = GRAY;
+        border_color = (Color){ 80, 80, 80, 200 };
+        panel_color = (Color){ 30, 30, 40, 200 };
+        button_color = (Color){ 60, 60, 60, 180 };
+    }
+    else
+    {
+        bg_color = (Color){ 230, 230, 240, 255 };
+        text_color = (Color){ 20, 20, 30, 255 };
+        dim_text_color = (Color){ 100, 100, 110, 255 };
+        border_color = (Color){ 120, 120, 130, 200 };
+        panel_color = (Color){ 200, 200, 210, 220 };
+        button_color = (Color){ 180, 180, 190, 220 };
+    }
 
 
 if (player.dead)
 {
-    DrawRectangle(0, 0, 800, 600, (Color){ 80, 0, 0, 180 });
+    Color dead_bg = game_theme == 0 ? (Color){ 80, 0, 0, 180 } : (Color){ 200, 60, 60, 150 };
+    DrawRectangle(0, 0, 800, 600, dead_bg);
 
     DrawText("YOU DIED", 280, 250, 40, RED);
 
     char respawn_text[64];
     float seconds = (float)player.respawn_timer / 60.0f;
     snprintf(respawn_text, sizeof(respawn_text), "Respawning in %.1f...", seconds);
-    DrawText(respawn_text, 300, 310, 24, WHITE);
+    DrawText(respawn_text, 300, 310, 24, text_color);
 
     return;
 }
@@ -425,7 +460,7 @@ camera.rotation = 0.0f;
 
 BeginMode2D(camera);
 
-DrawRectangleLinesEx((Rectangle){ 0, 0, WORLD_WIDTH, WORLD_HEIGHT }, 4, (Color){ 80, 80, 80, 200 });
+DrawRectangleLinesEx((Rectangle){ 0, 0, WORLD_WIDTH, WORLD_HEIGHT }, 4, border_color);
 
 if (player.shield_timer > 0)
 {
@@ -461,10 +496,10 @@ player_name_get(),
 player.x-40,
 player.y-50,
 20,
-WHITE
+text_color
 );
 
-draw_hp_bar(player.x, player.y - 40, player.hp, player.max_hp);
+draw_hp_bar(player.x, player.y - 40, player.hp, player.max_hp, text_color);
 
 
 
@@ -486,8 +521,8 @@ continue;
 
 if (p->dead)
 {
-    DrawText("X_X", p->x - 15, p->y - 10, 20, GRAY);
-    DrawText(p->name, p->x-40, p->y-50, 16, GRAY);
+    DrawText("X_X", p->x - 15, p->y - 10, 20, dim_text_color);
+    DrawText(p->name, p->x-40, p->y-50, 16, dim_text_color);
     continue;
 }
 
@@ -515,10 +550,10 @@ p->name,
 p->x-40,
 p->y-50,
 20,
-WHITE
+text_color
 );
 
-draw_hp_bar(p->x, p->y - 40, p->hp, 100);
+draw_hp_bar(p->x, p->y - 40, p->hp, 100, text_color);
 
 }
 
@@ -558,66 +593,68 @@ EndMode2D();
 
 if (controls_visible)
 {
-    draw_button(btn_up_rect, "^", (Color){ 180, 180, 180, 0 }, btn_up_pressed);
-    draw_button(btn_down_rect, "v", (Color){ 180, 180, 180, 0 }, btn_down_pressed);
-    draw_button(btn_left_rect, "<", (Color){ 180, 180, 180, 0 }, btn_left_pressed);
-    draw_button(btn_right_rect, ">", (Color){ 180, 180, 180, 0 }, btn_right_pressed);
+    Color ctrl_col = game_theme == 0 ? (Color){ 180, 180, 180, 0 } : (Color){ 100, 100, 110, 0 };
+    draw_button(btn_up_rect, "^", ctrl_col, btn_up_pressed);
+    draw_button(btn_down_rect, "v", ctrl_col, btn_down_pressed);
+    draw_button(btn_left_rect, "<", ctrl_col, btn_left_pressed);
+    draw_button(btn_right_rect, ">", ctrl_col, btn_right_pressed);
 
     draw_button(btn_bomb_rect, "BOMB", (Color){ 220, 50, 50, 0 }, btn_bomb_pressed);
     draw_button(btn_skill1_rect, "1", (Color){ 220, 180, 30, 0 }, btn_skill1_pressed);
     draw_button(btn_skill2_rect, "2", (Color){ 50, 120, 220, 0 }, btn_skill2_pressed);
 
+    Color cd_bar = game_theme == 0 ? (Color){ 100, 100, 100, 150 } : (Color){ 140, 140, 140, 150 };
     if (player.bomb_cooldown > 0 && server_cfg.bomb_cooldown > 0)
     {
         float pct = (float)player.bomb_cooldown / (float)server_cfg.bomb_cooldown;
-        DrawRectangle(btn_bomb_rect.x, btn_bomb_rect.y, btn_bomb_rect.width * pct, 4, (Color){ 100, 100, 100, 150 });
+        DrawRectangle(btn_bomb_rect.x, btn_bomb_rect.y, btn_bomb_rect.width * pct, 4, cd_bar);
         char cd_text[16];
         snprintf(cd_text, sizeof(cd_text), "%.1f", (float)player.bomb_cooldown / 60.0f);
         int tw = MeasureText(cd_text, 10);
-        DrawText(cd_text, btn_bomb_rect.x + btn_bomb_rect.width / 2 - tw / 2, btn_bomb_rect.y + btn_bomb_rect.height - 12, 10, WHITE);
+        DrawText(cd_text, btn_bomb_rect.x + btn_bomb_rect.width / 2 - tw / 2, btn_bomb_rect.y + btn_bomb_rect.height - 12, 10, text_color);
     }
 
     if (player.skill1_cooldown > 0 && server_cfg.skill1_cooldown > 0)
     {
         float pct = (float)player.skill1_cooldown / (float)server_cfg.skill1_cooldown;
-        DrawRectangle(btn_skill1_rect.x, btn_skill1_rect.y, btn_skill1_rect.width * pct, 4, (Color){ 100, 100, 100, 150 });
+        DrawRectangle(btn_skill1_rect.x, btn_skill1_rect.y, btn_skill1_rect.width * pct, 4, cd_bar);
         char cd_text[16];
         snprintf(cd_text, sizeof(cd_text), "%.1f", (float)player.skill1_cooldown / 60.0f);
         int tw = MeasureText(cd_text, 10);
-        DrawText(cd_text, btn_skill1_rect.x + btn_skill1_rect.width / 2 - tw / 2, btn_skill1_rect.y + btn_skill1_rect.height - 12, 10, WHITE);
+        DrawText(cd_text, btn_skill1_rect.x + btn_skill1_rect.width / 2 - tw / 2, btn_skill1_rect.y + btn_skill1_rect.height - 12, 10, text_color);
     }
 
     if (player.skill2_cooldown > 0 && server_cfg.skill2_cooldown > 0)
     {
         float pct = (float)player.skill2_cooldown / (float)server_cfg.skill2_cooldown;
-        DrawRectangle(btn_skill2_rect.x, btn_skill2_rect.y, btn_skill2_rect.width * pct, 4, (Color){ 100, 100, 100, 150 });
+        DrawRectangle(btn_skill2_rect.x, btn_skill2_rect.y, btn_skill2_rect.width * pct, 4, cd_bar);
         char cd_text[16];
         snprintf(cd_text, sizeof(cd_text), "%.1f", (float)player.skill2_cooldown / 60.0f);
         int tw = MeasureText(cd_text, 10);
-        DrawText(cd_text, btn_skill2_rect.x + btn_skill2_rect.width / 2 - tw / 2, btn_skill2_rect.y + btn_skill2_rect.height - 12, 10, WHITE);
+        DrawText(cd_text, btn_skill2_rect.x + btn_skill2_rect.width / 2 - tw / 2, btn_skill2_rect.y + btn_skill2_rect.height - 12, 10, text_color);
     }
 }
 
-DrawRectangleRec(btn_toggle_rect, (Color){ 60, 60, 60, 180 });
-DrawRectangleLinesEx(btn_toggle_rect, 2, (Color){ 150, 150, 150, 200 });
+DrawRectangleRec(btn_toggle_rect, button_color);
+DrawRectangleLinesEx(btn_toggle_rect, 2, border_color);
 if (controls_visible)
-    DrawText("<<", btn_toggle_rect.x + 8, btn_toggle_rect.y + 10, 18, WHITE);
+    DrawText("<<", btn_toggle_rect.x + 8, btn_toggle_rect.y + 10, 18, text_color);
 else
-    DrawText(">>", btn_toggle_rect.x + 8, btn_toggle_rect.y + 10, 18, WHITE);
+    DrawText(">>", btn_toggle_rect.x + 8, btn_toggle_rect.y + 10, 18, text_color);
 
 
 if (player.boost_timer > 0)
 {
     float pct = (float)player.boost_timer / 120.0f;
     DrawRectangle(10, 10, 100 * pct, 8, YELLOW);
-    DrawText("BOOST", 10, 22, 12, YELLOW);
+    DrawText("BOOST", 10, 22, 12, text_color);
 }
 
 if (player.shield_timer > 0)
 {
     float pct = (float)player.shield_timer / 180.0f;
     DrawRectangle(10, 40, 100 * pct, 8, SKYBLUE);
-    DrawText("SHIELD", 10, 52, 12, SKYBLUE);
+    DrawText("SHIELD", 10, 52, 12, text_color);
 }
 
 

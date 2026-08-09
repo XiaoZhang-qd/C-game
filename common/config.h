@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_CONFIG_H
+#ifndef CGAME_CONFIG_H
 #define CGAME_CONFIG_H
 
 

@@ -1,4 +1,4 @@
-﻿#ifndef CGAME_SOCKET_H
+#ifndef CGAME_SOCKET_H
 #define CGAME_SOCKET_H
 
 

@@ -1,4 +1,4 @@
-﻿#include "socket.h"
+#include "socket.h"
 #include "platform.h"
 
 #include <string.h>
