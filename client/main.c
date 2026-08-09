@@ -477,7 +477,7 @@ else if (state == GUI_GAME)
     game_update();
 
 #ifdef _WIN32
-    if (g_escPressed)
+    if (g_escPressed || IsKeyPressed(KEY_ESCAPE))
     {
         g_escPressed = 0;
 #else

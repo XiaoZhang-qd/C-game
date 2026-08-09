@@ -250,7 +250,7 @@ if(NOT CGAME_SKIP_RAYLIB_BUILD AND NOT CGAME_USE_EMSCRIPTEN)
     if(NOT EXISTS "${RAYLIB_LIB}")
         message(WARNING "raylib static library not found at ${RAYLIB_LIB}")
         message(STATUS "Attempting to build raylib from source...")
-        set(RAYLIB_DIR ${CMAKE_SOURCE_DIR}/raylib)
+        set(RAYLIB_DIR ${CMAKE_SOURCE_DIR}/raylib/src)
 
         set(RAYLIB_MAKE_ARGS "-j4")
         if(CMAKE_C_COMPILER)
