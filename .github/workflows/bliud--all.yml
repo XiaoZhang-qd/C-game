@@ -1,0 +1,249 @@
+name: CGame iOS Theos 自动编译打包发布
+on:
+  workflow_dispatch: # 手动点击运行，无需推送触发
+
+env:
+  # 游戏仓库信息（固定不用改）
+  GAME_OWNER: XiaoZhang-qd
+  GAME_REPO: C-game
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+jobs:
+  build_ios_ipa:
+    runs-on: ubuntu-latest
+    steps:
+      # 1 清空旧源码，拉取游戏完整代码
+      - name: 拉取游戏仓库源码
+        run: |
+          rm -rf game-source
+          git clone https://${GH_TOKEN}@github.com/${GAME_OWNER}/${GAME_REPO}.git game-source
+          cd game-source
+
+      # 2 安装Ubuntu系统依赖
+      - name: 安装编译依赖包
+        run: |
+          sudo apt update -y
+          sudo apt install -y git build-essential fakeroot perl curl unzip zip libtinfo5
+
+      # 3 完整部署官方Theos Linux交叉编译环境（解决工具缺失）
+      - name: 部署Theos全套工具链+iOS SDK
+        run: |
+          rm -rf ~/theos
+          # 递归克隆完整theos主仓库
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          # 更新iOS补丁SDK
+          cd ~/theos/sdks
+          git pull
+          # 写入全局环境变量
+          echo "export THEOS=$HOME/theos" >> ~/.bashrc
+          echo "export PATH=\$THEOS/bin:\$PATH" >> ~/.bashrc
+          source ~/.bashrc
+          # 自动下载Linux专用aarch64-apple iOS clang工具
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          echo "===== Theos 部署完成 ====="
+          ls $THEOS/toolchain/linux/iphone/bin/clang
+
+      # 4 覆盖修复后的编译脚本（彻底解决-arch报错、编译器识别问题）
+      - name: 写入修复版 build-ios-theos.sh
+        working-directory: ./game-source
+        run: |
+          cat > ./build-ios-theos.sh << 'SCRIPT_FULL'
+#!/usr/bin/env bash
+set -e
+echo "========================================"
+echo "        CGame Racer iOS Theos Build"
+echo "========================================"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 强制Theos环境变量
+export THEOS="$HOME/theos"
+export PATH="$THEOS/toolchain/linux/iphone/bin:$THEOS/bin:$PATH"
+cd "${SCRIPT_DIR}"
+
+# 默认编译参数 arm64 + iOS16.5
+IOS_ARCH="${1:-arm64}"
+IOS_MIN_VER="${2:-16.5}"
+BUNDLE_ID="${3:-com.cgame.racer}"
+BUNDLE_NAME="${4:-CGame Racer}"
+
+THEOS_SDKS="${THEOS}/sdks"
+if [ ! -d "${THEOS_SDKS}" ]; then
+  echo "[FATAL ERROR] 找不到Theos SDK目录"
+  exit 1
+fi
+
+# 匹配SDK文件夹
+SDK_NAME="iPhoneOS${IOS_MIN_VER}.sdk"
+SDK_PATH="${THEOS_SDKS}/${SDK_NAME}"
+if [ ! -d "${SDK_PATH}" ]; then
+  AVAIL_SDKS=$(ls -d ${THEOS_SDKS}/iPhoneOS*.sdk | sort -V)
+  SDK_PATH=$(echo "$AVAIL_SDKS" | tail -1)
+  SDK_NAME=$(basename "$SDK_PATH")
+  echo "[WARN] 未找到指定SDK，自动切换最新：$SDK_NAME"
+fi
+echo "[INFO] 使用SDK: $SDK_NAME"
+
+# 提取SDK主版本号 16.5 → 16
+SDKVER="${SDK_NAME#iPhoneOS}"
+SDKVER="${SDKVER%%.*}"
+IOS_VERSION="${SDK_NAME#iPhoneOS}"
+
+# 指定Linux内置iOS交叉clang，不再匹配前缀工具
+CROSS_CLANG="${THEOS}/toolchain/linux/iphone/bin/clang"
+CROSS_CXX="${THEOS}/toolchain/linux/iphone/bin/clang++"
+if [ -x "${CROSS_CLANG}" ]; then
+  CC="${CROSS_CLANG}"
+  CXX="${CROSS_CXX}"
+  echo "[INFO] 加载iOS交叉编译器: ${CC}"
+else
+  echo "[FATAL ERROR] iOS编译工具链缺失，终止运行"
+  exit 1
+fi
+
+# SDK头文件、系统库路径
+SDK_INCLUDE="${SDK_PATH}/usr/include"
+SDK_LIB="${SDK_PATH}/usr/lib"
+FRAMEWORKS="${SDK_PATH}/System/Library/Frameworks"
+CLANG_SDK_LIB="${SDK_PATH}/usr/lib/clang/${SDKVER}/lib"
+
+# 清空构建目录
+BUILD_DIR="${SCRIPT_DIR}/build-ios-theos"
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+# 游戏全部C源码列表
+SOURCES=(
+  "../common/socket.c"
+  "../server/main.c"
+  "../server/server.c"
+  "../client/main.c"
+  "../client/gui.c"
+  "../client/game.c"
+  "../client/network.c"
+  "../client/raygui_impl.c"
+)
+
+# 头文件搜索路径
+INCLUDES=(
+  "-I${SCRIPT_DIR}/common"
+  "-I${SCRIPT_DIR}/client"
+  "-I${SCRIPT_DIR}/server"
+  "-I${SCRIPT_DIR}/raylib/src"
+  "-I${SCRIPT_DIR}/raygui-5.0/src"
+  "-I${SDK_INCLUDE}"
+  "-I${SDK_INCLUDE}/c++"
+  "-I${SDK_INCLUDE}/c++/backward"
+  "-I${SDK_INCLUDE}/c++/v1"
+)
+
+# 关键修复：删除macOS专属 -arch 参数，仅保留target三元组
+TARGET_TRIPLE="arm64-apple-ios${SDKVER}"
+COMMON_FLAGS=(
+  "-isysroot ${SDK_PATH}"
+  "-target ${TARGET_TRIPLE}"
+  "-miphoneos-version-min=${IOS_VERSION}"
+  "-fembed-bitcode"
+  "-O2"
+  "-DNDEBUG"
+  "-DCGAME_IOS=1"
+)
+
+# 批量编译所有.c文件
+echo "[INFO] 开始编译游戏源码..."
+for src in "${SOURCES[@]}"; do
+  BASENAME=$(basename "${src}" .c)
+  echo "CC ${BASENAME}.c"
+  ${CC} "${COMMON_FLAGS[@]}" "${INCLUDES[@]}" -c "${src}" -o "${BASENAME}.o"
+done
+
+# 编译raylib图形库
+echo "[INFO] 处理Raylib库..."
+if [ -f "${SCRIPT_DIR}/raylib/src/libraylib.a" ]; then
+  RAYLIB_LIB="${SCRIPT_DIR}/raylib/src/libraylib.a"
+else
+  cd "${SCRIPT_DIR}/raylib"
+  make -j4 PLATFORM=IOS CC="${CC}" AR="ar" CFLAGS="${COMMON_FLAGS[*]} ${INCLUDES[*]}"
+  cd "${BUILD_DIR}"
+  RAYLIB_LIB="${SCRIPT_DIR}/raylib/src/libraylib.a"
+fi
+
+# 链接iOS客户端可执行文件
+echo "[INFO] 链接游戏主程序..."
+CLIENT_OBJS=$(ls *.o | grep -v "^server_" || true)
+LINK_ARGS="${COMMON_FLAGS[*]} ${CLIENT_OBJS} ${RAYLIB_LIB} -L${SDK_LIB} -L${CLANG_SDK_LIB} -F${FRAMEWORKS} -framework Foundation -framework UIKit -framework CoreGraphics -framework CoreMotion -framework OpenGLES -framework QuartzCore -lpthread -lm"
+${CC} ${LINK_ARGS} -o c-game-client
+
+# 构建标准iOS Payload包结构
+APP_FOLDER="Payload/CGame Racer.app"
+rm -rf Payload
+mkdir -p "${APP_FOLDER}"
+cp c-game-client "${APP_FOLDER}/CGame Racer"
+chmod +x "${APP_FOLDER}"
+
+# 写入App配置Info.plist
+cat > "${APP_FOLDER}/Info.plist" << PLIST_CONTENT
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>CFBundleDevelopmentRegion</key><string>en</string>
+<key>CFBundleDisplayName</string><string>${BUNDLE_NAME}</string>
+<key>CFBundleExecutable</key><string>CGame Racer</string>
+<key>CFBundleIdentifier</key><string>${BUNDLE_ID}</string>
+<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+<key>CFBundleName</key><string>${BUNDLE_NAME}</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>1.0.0</string>
+<key>CFBundleVersion</key><string>1.0</string>
+<key>LSRequiresIPhoneOS</key><true/>
+<key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
+<key>UILaunchScreen</key><dict/>
+<key>UIRequiredDeviceCapabilities</key><array><string>arm64</string></array>
+<key>UISupportedInterfaceOrientations</key>
+<array>
+<string>UIInterfaceOrientationPortrait</string>
+<string>UIInterfaceOrientationLandscapeLeft</string>
+<string>UIInterfaceOrientationLandscapeRight</string>
+</array>
+</dict>
+</plist>
+PLIST_CONTENT
+echo "APPL????" > "${APP_FOLDER}/PkgInfo"
+
+# 打包IPA压缩包
+IPA_FILE="c-game-arm64-ios${SDKVER}.ipa"
+zip -r "${IPA_FILE}" Payload
+echo "[SUCCESS] 打包完成，输出文件：${IPA_FILE}"
+echo OUTPUT_IPA="${IPA_FILE}" >> $GITHUB_ENV
+SCRIPT_FULL
+          chmod +x ./build-ios-theos.sh
+
+      # 5 执行编译脚本
+      - name: 运行iOS编译打包
+        working-directory: ./game-source
+        run: |
+          source ~/.bashrc
+          bash ./build-ios-theos.sh arm64 16.5
+
+      # 6 自动在【游戏仓库】创建Release并上传IPA下载包
+      - name: 发布IPA到游戏仓库Releases
+        working-directory: ./game-source
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          # 指定目标仓库为你的游戏仓库
+          GITHUB_REPOSITORY: ${{ env.GAME_OWNER }}/${{ env.GAME_REPO }}
+        with:
+          tag_name: ios-build-${{ github.run_id }}
+          name: iOS自动构建包 #${{ github.run_number }}
+          body: >
+            编译环境：Ubuntu + Theos Linux交叉工具链
+            架构：arm64（iPhone/iPad真机）
+            最低系统：iOS16.5
+            使用方式：
+            1. 越狱设备：解压Payload后dpkg安装
+            2. 普通iPhone：使用TrollStore / AltStore侧载安装
+            3. 无苹果开发者证书，无法直接上架AppStore
+          files: build-ios-theos/*.ipa
+          prerelease: true
+          make_latest: false
