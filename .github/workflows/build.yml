@@ -21,12 +21,10 @@ on:
           - android
           - web
           - ios
-          - bsd
           - windows-cross
           - ios-theos
           - harmonyos
           - linux-drm
-          - linux-extra
 
 env:
   CMAKE_VERSION: "3.20"
@@ -120,17 +118,17 @@ jobs:
       - name: Build raylib (cross-compile)
         if: matrix.cross_cc != ''
         run: |
-          cd raylib
+          cd raylib/src
           make -j4 CC=${{ matrix.cross_cc }} AR=${{ matrix.cross_ar }} ${{ matrix.raylib_platform }}
-          cd ..
+          cd ../..
 
       - name: Build raylib (native)
         if: matrix.cross_cc == ''
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib
+            cd raylib/src
             make -j4 ${{ matrix.raylib_platform }} CFLAGS="${{ matrix.raylib_cflags }}"
-            cd ..
+            cd ../..
           fi
 
       - name: Configure CMake
@@ -209,16 +207,11 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: |
-          if [ -n "${{ matrix.toolchain }}" ]; then
-            cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE="${{ matrix.toolchain }}" -B ${{ matrix.build_dir }} -S .
-          else
-            cmake -G Ninja -B ${{ matrix.build_dir }} -S .
-          fi
+        run: cmake --preset ${{ matrix.preset }}
 
       - name: Build
         shell: bash
-        run: cmake --build ${{ matrix.build_dir }}
+        run: cmake --build --preset ${{ matrix.preset }}
 
       - name: List artifacts
         shell: bash
@@ -266,9 +259,9 @@ jobs:
       - name: Build raylib
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib
+            cd raylib/src
             make -j4 PLATFORM_OS=OSX
-            cd ..
+            cd ../..
           fi
 
       - name: Configure CMake
@@ -337,12 +330,12 @@ jobs:
 
       - name: Build raylib for Android
         run: |
-          cd raylib
-          make -j4 PLATFORM_ANDROID \
+          cd raylib/src
+          make -j4 PLATFORM=PLATFORM_ANDROID \
             ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64" \
             ANDROID_COMPILER_ARCH=${{ matrix.android_arch }} \
             ANDROID_API_VERSION=24
-          cd ..
+          cd ../..
 
       - name: Configure CMake
         env:
@@ -387,9 +380,9 @@ jobs:
 
       - name: Build raylib for Web
         run: |
-          cd raylib
-          make -j4 PLATFORM_OS=WEB EMSDK="$EMSDK"
-          cd ..
+          cd raylib/src
+          make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK"
+          cd ../..
 
       - name: Configure CMake
         run: cmake --preset web-emscripten -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -440,9 +433,9 @@ jobs:
 
       - name: Build raylib for iOS
         run: |
-          cd raylib
+          cd raylib/src
           make -j4 PLATFORM_OS=OSX CC=clang
-          cd ..
+          cd ../..
 
       - name: Configure CMake
         run: |
@@ -468,82 +461,83 @@ jobs:
 
   # ============================================
   # BSD cross-compilation builds (ubuntu-latest)
+  # DISABLED: GitHub Actions does not provide BSD runners,
+  # and Ubuntu repos lack cross-compiler packages for these targets.
+  # Enable only when running on self-hosted BSD runners.
   # ============================================
-  bsd:
-    name: "${{ matrix.bsd }} x64"
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - bsd: FreeBSD
-            preset: freebsd-x64
-            build_dir: build-freebsd
-            target: x86_64-unknown-freebsd
-            cc: x86_64-unknown-freebsd13-gcc
-          - bsd: OpenBSD
-            preset: openbsd-x64
-            build_dir: build-openbsd
-            target: x86_64-unknown-openbsd
-            cc: x86_64-unknown-openbsd7.6-gcc
-          - bsd: NetBSD
-            preset: netbsd-x64
-            build_dir: build-netbsd
-            target: x86_64-unknown-netbsd
-            cc: x86_64-unknown-netbsd10-gcc
-          - bsd: DragonFly
-            preset: dragonfly-x64
-            build_dir: build-dragonfly
-            target: x86_64-unknown-dragonfly
-            cc: x86_64-unknown-dragonfly6.4-gcc
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build gcc
-
-      - name: Install cross-compiler toolchain
-        run: |
-          sudo apt-get install -y gcc-${{ matrix.target }} || true
-          # Fallback: install generic cross-compiler if specific one not available
-          if ! command -v ${{ matrix.cc }} &>/dev/null; then
-            echo "Installing ${{ matrix.cc }} via alternative method..."
-            sudo apt-get install -y gcc-cross-${{ matrix.target }} || true
-          fi
-          # Check what we have
-          which ${{ matrix.cc }} || echo "WARNING: ${{ matrix.cc }} not found"
-
-      - name: Build raylib (cross)
-        run: |
-          cd raylib
-          make -j4 CC=${{ matrix.cc }} AR=${{ matrix.cc }}-ar PLATFORM_OS=BSD 2>/dev/null || \
-          make -j4 CC=${{ matrix.cc }} PLATFORM_OS=LINUX
-          cd ..
-
-      - name: Configure CMake
-        run: |
-          cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
-
-      - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
-
-      - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/c-game-*
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "c-game-${{ matrix.bsd }}-x64"
-          path: |
-            ${{ matrix.build_dir }}/c-game-client*
-            ${{ matrix.build_dir }}/c-game-server*
-          if-no-files-found: error
-          retention-days: 30
+  # bsd:
+  #   name: "${{ matrix.bsd }} x64"
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - bsd: FreeBSD
+  #           preset: freebsd-x64
+  #           build_dir: build-freebsd
+  #           target: x86_64-unknown-freebsd
+  #           cc: x86_64-unknown-freebsd13-gcc
+  #         - bsd: OpenBSD
+  #           preset: openbsd-x64
+  #           build_dir: build-openbsd
+  #           target: x86_64-unknown-openbsd
+  #           cc: x86_64-unknown-openbsd7.6-gcc
+  #         - bsd: NetBSD
+  #           preset: netbsd-x64
+  #           build_dir: build-netbsd
+  #           target: x86_64-unknown-netbsd
+  #           cc: x86_64-unknown-netbsd10-gcc
+  #         - bsd: DragonFly
+  #           preset: dragonfly-x64
+  #           build_dir: build-dragonfly
+  #           target: x86_64-unknown-dragonfly
+  #           cc: x86_64-unknown-dragonfly6.4-gcc
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y cmake ninja-build gcc
+  #
+  #     - name: Install cross-compiler toolchain
+  #       run: |
+  #         sudo apt-get install -y gcc-${{ matrix.target }} || true
+  #         if ! command -v ${{ matrix.cc }} &>/dev/null; then
+  #           echo "Installing ${{ matrix.cc }} via alternative method..."
+  #           sudo apt-get install -y gcc-cross-${{ matrix.target }} || true
+  #         fi
+  #         which ${{ matrix.cc }} || echo "WARNING: ${{ matrix.cc }} not found"
+  #
+  #     - name: Build raylib (cross)
+  #       run: |
+  #         cd raylib
+  #         make -j4 CC=${{ matrix.cc }} AR=${{ matrix.cc }}-ar PLATFORM_OS=BSD 2>/dev/null || \
+  #         make -j4 CC=${{ matrix.cc }} PLATFORM_OS=LINUX
+  #         cd ..
+  #
+  #     - name: Configure CMake
+  #       run: |
+  #         cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
+  #
+  #     - name: Build
+  #       run: cmake --build --preset ${{ matrix.preset }}
+  #
+  #     - name: List artifacts
+  #       run: ls -la ${{ matrix.build_dir }}/c-game-*
+  #
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "c-game-${{ matrix.bsd }}-x64"
+  #         path: |
+  #           ${{ matrix.build_dir }}/c-game-client*
+  #           ${{ matrix.build_dir }}/c-game-server*
+  #         if-no-files-found: error
+  #         retention-days: 30
 
   # ============================================
   # Windows cross-compilation from Linux (MinGW)
@@ -578,9 +572,9 @@ jobs:
 
       - name: Build raylib (cross)
         run: |
-          cd raylib
+          cd raylib/src
           make -j4 CC=${{ matrix.cc }} AR=${{ matrix.ar }} PLATFORM_OS=WINDOWS
-          cd ..
+          cd ../..
 
       - name: Configure CMake
         run: |
@@ -643,9 +637,9 @@ jobs:
 
       - name: Build raylib for iOS (Theos)
         run: |
-          cd raylib
-          make -j4 PLATFORM=PLATFORM_IOS CC=clang
-          cd ..
+          cd raylib/src
+          make -j4 PLATFORM_OS=OSX CC=clang
+          cd ../..
 
       - name: Configure CMake
         run: |
@@ -685,9 +679,9 @@ jobs:
 
       - name: Build raylib
         run: |
-          cd raylib
+          cd raylib/src
           make -j4 PLATFORM_OS=LINUX CC=clang
-          cd ..
+          cd ../..
 
       - name: Configure CMake
         run: |
@@ -727,9 +721,9 @@ jobs:
 
       - name: Build raylib for DRM
         run: |
-          cd raylib
-          make -j4 PLATFORM_OS=LINUX
-          cd ..
+          cd raylib/src
+          make -j4 PLATFORM=PLATFORM_DRM
+          cd ../..
 
       - name: Configure CMake
         run: cmake --preset linux-drm -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -752,71 +746,73 @@ jobs:
 
   # ============================================
   # Linux additional cross builds (ppc64, s390x, sparc64)
+  # DISABLED: Ubuntu repos lack cross-compiler packages for these architectures.
+  # Enable only when running on self-hosted runners with toolchains installed.
   # ============================================
-  linux-extra:
-    name: "Linux ${{ matrix.arch }}"
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: ppc64le
-            preset: linux-ppc64le
-            build_dir: build-linux-ppc64le
-            cc: powerpc64le-linux-gnu-gcc
-            ar: powerpc64le-linux-gnu-ar
-          - arch: s390x
-            preset: linux-s390x
-            build_dir: build-linux-s390x
-            cc: s390x-linux-gnu-gcc
-            ar: s390x-linux-gnu-ar
-          - arch: sparc64
-            preset: linux-sparc64
-            build_dir: build-linux-sparc64
-            cc: sparc64-linux-gnu-gcc
-            ar: sparc64-linux-gnu-ar
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install cross-compilers
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
-          sudo apt-get install -y gcc-${{ matrix.arch == 'ppc64le' && 'powerpc64le-linux-gnu' || matrix.arch == 's390x' && 's390x-linux-gnu' || 'sparc64-linux-gnu' }} || true
-
-      - name: Build raylib (cross)
-        run: |
-          cd raylib
-          make -j4 CC=${{ matrix.cc }} AR=${{ matrix.ar }} PLATFORM_OS=LINUX || true
-          cd ..
-
-      - name: Configure CMake
-        run: |
-          cmake -G Ninja \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_AR=${{ matrix.ar }} \
-            -DCGAME_SKIP_RAYLIB_BUILD=ON \
-            -B ${{ matrix.build_dir }} \
-            -S .
-
-      - name: Build
-        run: cmake --build ${{ matrix.build_dir }}
-
-      - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/c-game-*
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "c-game-linux-${{ matrix.arch }}"
-          path: |
-            ${{ matrix.build_dir }}/c-game-client*
-            ${{ matrix.build_dir }}/c-game-server*
-          if-no-files-found: error
-          retention-days: 30
+  # linux-extra:
+  #   name: "Linux ${{ matrix.arch }}"
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - arch: ppc64le
+  #           preset: linux-ppc64le
+  #           build_dir: build-linux-ppc64le
+  #           cc: powerpc64le-linux-gnu-gcc
+  #           ar: powerpc64le-linux-gnu-ar
+  #         - arch: s390x
+  #           preset: linux-s390x
+  #           build_dir: build-linux-s390x
+  #           cc: s390x-linux-gnu-gcc
+  #           ar: s390x-linux-gnu-ar
+  #         - arch: sparc64
+  #           preset: linux-sparc64
+  #           build_dir: build-linux-sparc64
+  #           cc: sparc64-linux-gnu-gcc
+  #           ar: sparc64-linux-gnu-ar
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #
+  #     - name: Install cross-compilers
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y cmake ninja-build
+  #         sudo apt-get install -y gcc-${{ matrix.arch == 'ppc64le' && 'powerpc64le-linux-gnu' || matrix.arch == 's390x' && 's390x-linux-gnu' || 'sparc64-linux-gnu' }} || true
+  #
+  #     - name: Build raylib (cross)
+  #       run: |
+  #         cd raylib
+  #         make -j4 CC=${{ matrix.cc }} AR=${{ matrix.ar }} PLATFORM_OS=LINUX || true
+  #         cd ..
+  #
+  #     - name: Configure CMake
+  #       run: |
+  #         cmake -G Ninja \
+  #           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+  #           -DCMAKE_AR=${{ matrix.ar }} \
+  #           -DCGAME_SKIP_RAYLIB_BUILD=ON \
+  #           -B ${{ matrix.build_dir }} \
+  #           -S .
+  #
+  #     - name: Build
+  #       run: cmake --build ${{ matrix.build_dir }}
+  #
+  #     - name: List artifacts
+  #       run: ls -la ${{ matrix.build_dir }}/c-game-*
+  #
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "c-game-linux-${{ matrix.arch }}"
+  #         path: |
+  #           ${{ matrix.build_dir }}/c-game-client*
+  #           ${{ matrix.build_dir }}/c-game-server*
+  #         if-no-files-found: error
+  #         retention-days: 30
 
   # ============================================
   # Build summary
@@ -831,12 +827,10 @@ jobs:
       - android
       - web
       - ios
-      - bsd
       - windows-cross
       - ios-theos
       - harmonyos
       - linux-drm
-      - linux-extra
     steps:
       - name: Display build summary
         run: |

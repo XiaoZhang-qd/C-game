@@ -30,7 +30,7 @@ jobs:
       - name: Build raylib
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib && make -j4 PLATFORM_OS=LINUX && cd ..
+            cd raylib/src && make -j4 PLATFORM_OS=LINUX && cd ../..
           fi
       - name: Build
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Build raylib
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib && make -j4 PLATFORM_OS=LINUX && cd ..
+            cd raylib/src && make -j4 PLATFORM_OS=LINUX && cd ../..
           fi
       - name: Build
         run: |
@@ -91,7 +91,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential cmake gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
       - name: Build raylib
         run: |
-          cd raylib && make -j4 CC=aarch64-linux-gnu-gcc AR=aarch64-linux-gnu-ar PLATFORM_OS=LINUX && cd ..
+          cd raylib/src && make -j4 CC=aarch64-linux-gnu-gcc AR=aarch64-linux-gnu-ar PLATFORM_OS=LINUX && cd ../..
       - name: Build
         run: |
           cmake --preset linux-arm64 -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -120,7 +120,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential cmake gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
       - name: Build raylib
         run: |
-          cd raylib && make -j4 CC=arm-linux-gnueabihf-gcc AR=arm-linux-gnueabihf-ar PLATFORM_OS=LINUX && cd ..
+          cd raylib/src && make -j4 CC=arm-linux-gnueabihf-gcc AR=arm-linux-gnueabihf-ar PLATFORM_OS=LINUX && cd ../..
       - name: Build
         run: |
           cmake --preset linux-arm32 -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -149,7 +149,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential cmake gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
       - name: Build raylib
         run: |
-          cd raylib && make -j4 CC=riscv64-linux-gnu-gcc AR=riscv64-linux-gnu-ar PLATFORM_OS=LINUX && cd ..
+          cd raylib/src && make -j4 CC=riscv64-linux-gnu-gcc AR=riscv64-linux-gnu-ar PLATFORM_OS=LINUX && cd ../..
       - name: Build
         run: |
           cmake --preset linux-riscv64 -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -178,7 +178,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential cmake gcc-mips64-linux-gnuabi64 g++-mips64-linux-gnuabi64
       - name: Build raylib
         run: |
-          cd raylib && make -j4 CC=mips64-linux-gnuabi64-gcc AR=mips64-linux-gnuabi64-ar PLATFORM_OS=LINUX && cd ..
+          cd raylib/src && make -j4 CC=mips64-linux-gnuabi64-gcc AR=mips64-linux-gnuabi64-ar PLATFORM_OS=LINUX && cd ../..
       - name: Build
         run: |
           cmake --preset linux-mips64 -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -322,7 +322,7 @@ jobs:
       - name: Build raylib
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib && make -j4 PLATFORM_OS=OSX && cd ..
+            cd raylib/src && make -j4 PLATFORM_OS=OSX && cd ../..
           fi
       - name: Build
         run: |
@@ -353,7 +353,7 @@ jobs:
       - name: Build raylib
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib && make -j4 PLATFORM_OS=OSX && cd ..
+            cd raylib/src && make -j4 PLATFORM_OS=OSX && cd ../..
           fi
       - name: Build
         run: |
@@ -391,12 +391,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
       - name: Build raylib for Android
         run: |
-          cd raylib
-          make -j4 PLATFORM_ANDROID \
+          cd raylib/src
+          make -j4 PLATFORM=PLATFORM_ANDROID \
             ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64" \
             ANDROID_COMPILER_ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || matrix.arch == 'armv7' && 'armv7a' || matrix.arch == 'x86' && 'i686' || 'x86_64' }} \
             ANDROID_API_VERSION=24
-          cd ..
+          cd ../..
       - name: Build
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
@@ -430,7 +430,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
       - name: Build raylib for Web
         run: |
-          cd raylib && make -j4 PLATFORM_OS=WEB EMSDK="$EMSDK" && cd ..
+          cd raylib/src && make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK" && cd ../..
       - name: Build
         run: |
           cmake --preset web-emscripten -DCGAME_SKIP_RAYLIB_BUILD=ON
@@ -463,7 +463,7 @@ jobs:
         run: brew install cmake ninja
       - name: Build raylib
         run: |
-          cd raylib && make -j4 PLATFORM_OS=OSX CC=clang && cd ..
+          cd raylib/src && make -j4 PLATFORM_OS=OSX CC=clang && cd ../..
       - name: Build
         run: |
           SDK=${{ matrix.arch == 'arm64' && 'iphoneos' || 'iphonesimulator' }}
