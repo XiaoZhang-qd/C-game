@@ -218,14 +218,14 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake -G Ninja ..
-          cmake --build .
+          cmake --preset windows-x64
+          cmake --build --preset windows-x64
       - name: Package
         shell: bash
         run: |
           mkdir -p release/windows-x64
-          cp c-game-client-x64.exe release/windows-x64/
-          cp c-game-server-x64.exe release/windows-x64/
+          cp build/c-game-client-x64.exe release/windows-x64/
+          cp build/c-game-server-x64.exe release/windows-x64/
           cp README.md release/windows-x64/ || true
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -256,9 +256,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cd build-win32 2>/dev/null || mkdir build-win32 && cd build-win32
-          cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/windows-x86.cmake ..
-          cmake --build .
+          cmake --preset windows-x86
+          cmake --build --preset windows-x86
       - name: Package
         shell: bash
         run: |
@@ -295,9 +294,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cd build-win-arm64 2>/dev/null || mkdir build-win-arm64 && cd build-win-arm64
-          cmake -G Ninja -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/windows-arm64.cmake ..
-          cmake --build .
+          cmake --preset windows-arm64
+          cmake --build --preset windows-arm64
       - name: Package
         shell: bash
         run: |
@@ -394,7 +392,7 @@ jobs:
       - name: Build raylib for Android
         run: |
           cd raylib
-          make -j4 PLATFORM=PLATFORM_ANDROID \
+          make -j4 PLATFORM_ANDROID \
             ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64" \
             ANDROID_COMPILER_ARCH=${{ matrix.arch == 'arm64' && 'aarch64' || matrix.arch == 'armv7' && 'armv7a' || matrix.arch == 'x86' && 'i686' || 'x86_64' }} \
             ANDROID_API_VERSION=24
@@ -432,7 +430,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
       - name: Build raylib for Web
         run: |
-          cd raylib && make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK" && cd ..
+          cd raylib && make -j4 PLATFORM_OS=WEB EMSDK="$EMSDK" && cd ..
       - name: Build
         run: |
           cmake --preset web-emscripten -DCGAME_SKIP_RAYLIB_BUILD=ON

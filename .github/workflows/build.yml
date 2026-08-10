@@ -338,7 +338,7 @@ jobs:
       - name: Build raylib for Android
         run: |
           cd raylib
-          make -j4 PLATFORM=PLATFORM_ANDROID \
+          make -j4 PLATFORM_ANDROID \
             ANDROID_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64" \
             ANDROID_COMPILER_ARCH=${{ matrix.android_arch }} \
             ANDROID_API_VERSION=24
@@ -388,7 +388,7 @@ jobs:
       - name: Build raylib for Web
         run: |
           cd raylib
-          make -j4 PLATFORM=PLATFORM_WEB EMSDK="$EMSDK"
+          make -j4 PLATFORM_OS=WEB EMSDK="$EMSDK"
           cd ..
 
       - name: Configure CMake
@@ -644,7 +644,7 @@ jobs:
       - name: Build raylib for iOS (Theos)
         run: |
           cd raylib
-          make -j4 PLATFORM_OS=OSX CC=clang
+          make -j4 PLATFORM=PLATFORM_IOS CC=clang
           cd ..
 
       - name: Configure CMake
@@ -728,7 +728,7 @@ jobs:
       - name: Build raylib for DRM
         run: |
           cd raylib
-          make -j4 PLATFORM=PLATFORM_DRM
+          make -j4 PLATFORM_OS=LINUX
           cd ..
 
       - name: Configure CMake
