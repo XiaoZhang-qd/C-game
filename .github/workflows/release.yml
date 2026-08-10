@@ -449,40 +449,40 @@ jobs:
           path: release/web-wasm/
           retention-days: 7
 
-  build-ios:
-    name: "iOS ${{ matrix.arch }}"
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        arch: [arm64, arm64-simulator]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Install dependencies
-        run: brew install cmake ninja
-      - name: Build raylib
-        run: |
-          cd raylib/src && make -j4 PLATFORM_OS=OSX CC=clang && cd ../..
-      - name: Build
-        run: |
-          SDK=${{ matrix.arch == 'arm64' && 'iphoneos' || 'iphonesimulator' }}
-          cmake --preset ios-${{ matrix.arch }} \
-            -DCMAKE_OSX_SYSROOT=$SDK \
-            -DCGAME_SKIP_RAYLIB_BUILD=ON
-          cmake --build --preset ios-${{ matrix.arch }}
-      - name: Package
-        run: |
-          mkdir -p release/ios-${{ matrix.arch }}
-          BUILD_DIR=${{ matrix.arch == 'arm64' && 'build-ios' || 'build-ios-sim' }}
-          cp $BUILD_DIR/c-game-client* release/ios-${{ matrix.arch }}/
-          cp $BUILD_DIR/c-game-server* release/ios-${{ matrix.arch }}/
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: "ios-${{ matrix.arch }}"
-          path: release/ios-${{ matrix.arch }}/
-          retention-days: 7
+  #  build-ios:
+  #   name: "iOS ${{ matrix.arch }}"
+  #   runs-on: macos-latest
+  #   strategy:
+  #     matrix:
+  #       arch: [arm64, arm64-simulator]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Install dependencies
+  #       run: brew install cmake ninja
+  #     - name: Build raylib
+  #       run: |
+  #         cd raylib/src && make -j4 PLATFORM_OS=OSX CC=clang && cd ../..
+  #     - name: Build
+  #       run: |
+  #         SDK=${{ matrix.arch == 'arm64' && 'iphoneos' || 'iphonesimulator' }}
+  #         cmake --preset ios-${{ matrix.arch }} \
+  #           -DCMAKE_OSX_SYSROOT=$SDK \
+  #           -DCGAME_SKIP_RAYLIB_BUILD=ON
+  #         cmake --build --preset ios-${{ matrix.arch }}
+  #     - name: Package
+  #       run: |
+  #         mkdir -p release/ios-${{ matrix.arch }}
+  #         BUILD_DIR=${{ matrix.arch == 'arm64' && 'build-ios' || 'build-ios-sim' }}
+  #         cp $BUILD_DIR/c-game-client* release/ios-${{ matrix.arch }}/
+  #         cp $BUILD_DIR/c-game-server* release/ios-${{ matrix.arch }}/
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "ios-${{ matrix.arch }}"
+  #         path: release/ios-${{ matrix.arch }}/
+  #         retention-days: 7
 
   # ============================================
   # Create Release
@@ -504,7 +504,6 @@ jobs:
       - build-macos-arm64
       - build-android
       - build-web
-      - build-ios
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -556,8 +555,6 @@ jobs:
             | Android | x86 | `c-game-racer-${{ github.ref_name }}-android-x86.tar.gz` |
             | Android | x86_64 | `c-game-racer-${{ github.ref_name }}-android-x86_64.tar.gz` |
             | Web | WASM | `c-game-racer-${{ github.ref_name }}-web-wasm.tar.gz` |
-            | iOS | ARM64 | `c-game-racer-${{ github.ref_name }}-ios-arm64.tar.gz` |
-            | iOS | ARM64 Simulator | `c-game-racer-${{ github.ref_name }}-ios-arm64-simulator.tar.gz` |
 
             ### Checksum
 

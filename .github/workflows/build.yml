@@ -20,10 +20,7 @@ on:
           - macos
           - android
           - web
-          - ios
           - windows-cross
-          - ios-theos
-          - harmonyos
           - linux-drm
 
 env:
@@ -406,58 +403,62 @@ jobs:
 
   # ============================================
   # iOS builds (macos-latest + Xcode)
+  # DISABLED: raylib Makefile does not support PLATFORM_IOS.
+  # The GLFW backend used by raylib requires a window system
+  # which is not available on iOS. To enable, add iOS support
+  # to raylib's Makefile and provide an iOS-specific backend.
   # ============================================
-  ios:
-    name: "iOS ${{ matrix.arch }}"
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            preset: ios-arm64
-            build_dir: build-ios
-            sdk: iphoneos
-          - arch: arm64-simulator
-            preset: ios-arm64-simulator
-            build_dir: build-ios-sim
-            sdk: iphonesimulator
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install CMake and Ninja
-        run: brew install cmake ninja
-
-      - name: Build raylib for iOS
-        run: |
-          cd raylib/src
-          make -j4 PLATFORM_OS=OSX CC=clang
-          cd ../..
-
-      - name: Configure CMake
-        run: |
-          cmake --preset ${{ matrix.preset }} \
-            -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }} \
-            -DCGAME_SKIP_RAYLIB_BUILD=ON
-
-      - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
-
-      - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/c-game-*
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "c-game-ios-${{ matrix.arch }}"
-          path: |
-            ${{ matrix.build_dir }}/c-game-client*
-            ${{ matrix.build_dir }}/c-game-server*
-          if-no-files-found: error
-          retention-days: 30
+  # ios:
+  #   name: "iOS ${{ matrix.arch }}"
+  #   runs-on: macos-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - arch: arm64
+  #           preset: ios-arm64
+  #           build_dir: build-ios
+  #           sdk: iphoneos
+  #         - arch: arm64-simulator
+  #           preset: ios-arm64-simulator
+  #           build_dir: build-ios-sim
+  #           sdk: iphonesimulator
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #
+  #     - name: Install CMake and Ninja
+  #       run: brew install cmake ninja
+  #
+  #     - name: Build raylib for iOS
+  #       run: |
+  #         cd raylib/src
+  #         make -j4 PLATFORM_OS=OSX CC=clang
+  #         cd ../..
+  #
+  #     - name: Configure CMake
+  #       run: |
+  #         cmake --preset ${{ matrix.preset }} \
+  #           -DCMAKE_OSX_SYSROOT=${{ matrix.sdk }} \
+  #           -DCGAME_SKIP_RAYLIB_BUILD=ON
+  #
+  #     - name: Build
+  #       run: cmake --build --preset ${{ matrix.preset }}
+  #
+  #     - name: List artifacts
+  #       run: ls -la ${{ matrix.build_dir }}/c-game-*
+  #
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "c-game-ios-${{ matrix.arch }}"
+  #         path: |
+  #           ${{ matrix.build_dir }}/c-game-client*
+  #           ${{ matrix.build_dir }}/c-game-server*
+  #         if-no-files-found: error
+  #         retention-days: 30
 
   # ============================================
   # BSD cross-compilation builds (ubuntu-latest)
@@ -603,105 +604,111 @@ jobs:
 
   # ============================================
   # iOS Theos cross-compilation (ubuntu-latest)
+  # DISABLED: Theos toolchain not available on GitHub Actions.
+  # Requires full Theos installation (clang cross-compiler, ldid, etc.)
+  # and raylib does not support PLATFORM_IOS in its Makefile.
   # ============================================
-  ios-theos:
-    name: "iOS ${{ matrix.arch }} (Theos)"
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            preset: ios-arm64-theos
-            build_dir: build-ios-theos
-            theos_sdk: iphoneos
-          - arch: arm64-simulator
-            preset: ios-arm64-sim-theos
-            build_dir: build-ios-sim-theos
-            theos_sdk: iphonesimulator
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build git python3
-
-      - name: Clone Theos SDKS
-        run: |
-          git clone --depth 1 https://github.com/theos/sdks.git theos-sdks
-          echo "THEOS=$PWD/theos-sdks" >> $GITHUB_ENV
-
-      - name: Build raylib for iOS (Theos)
-        run: |
-          cd raylib/src
-          make -j4 PLATFORM_OS=OSX CC=clang
-          cd ../..
-
-      - name: Configure CMake
-        run: |
-          cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
-
-      - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
-
-      - name: List artifacts
-        run: ls -la ${{ matrix.build_dir }}/c-game-*
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "c-game-ios-${{ matrix.arch }}-theos"
-          path: |
-            ${{ matrix.build_dir }}/c-game-client*
-            ${{ matrix.build_dir }}/c-game-server*
-          if-no-files-found: error
-          retention-days: 30
+  # ios-theos:
+  #   name: "iOS ${{ matrix.arch }} (Theos)"
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - arch: arm64
+  #           preset: ios-arm64-theos
+  #           build_dir: build-ios-theos
+  #           theos_sdk: iphoneos
+  #         - arch: arm64-simulator
+  #           preset: ios-arm64-sim-theos
+  #           build_dir: build-ios-sim-theos
+  #           theos_sdk: iphonesimulator
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y cmake ninja-build git python3
+  #
+  #     - name: Clone Theos SDKS
+  #       run: |
+  #         git clone --depth 1 https://github.com/theos/sdks.git theos-sdks
+  #         echo "THEOS=$PWD/theos-sdks" >> $GITHUB_ENV
+  #
+  #     - name: Build raylib for iOS (Theos)
+  #       run: |
+  #         cd raylib/src
+  #         make -j4 PLATFORM_OS=OSX CC=clang
+  #         cd ../..
+  #
+  #     - name: Configure CMake
+  #       run: |
+  #         cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
+  #
+  #     - name: Build
+  #       run: cmake --build --preset ${{ matrix.preset }}
+  #
+  #     - name: List artifacts
+  #       run: ls -la ${{ matrix.build_dir }}/c-game-*
+  #
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "c-game-ios-${{ matrix.arch }}-theos"
+  #         path: |
+  #           ${{ matrix.build_dir }}/c-game-client*
+  #           ${{ matrix.build_dir }}/c-game-server*
+  #         if-no-files-found: error
+  #         retention-days: 30
 
   # ============================================
   # HarmonyOS build (ubuntu-latest)
+  # DISABLED: HOS SDK not available on GitHub Actions runners.
+  # Requires HOS_SDK_HOME or HARMONYOS_SDK_HOME environment variable
+  # pointing to a HarmonyOS SDK installation.
   # ============================================
-  harmonyos:
-    name: "HarmonyOS ARM64"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
-
-      - name: Build raylib
-        run: |
-          cd raylib/src
-          make -j4 PLATFORM_OS=LINUX CC=clang
-          cd ../..
-
-      - name: Configure CMake
-        run: |
-          cmake --preset harmonyos-arm64 -DCGAME_SKIP_RAYLIB_BUILD=ON
-
-      - name: Build
-        run: cmake --build --preset harmonyos-arm64
-
-      - name: List artifacts
-        run: ls -la build-harmonyos-arm64/c-game-*
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: "c-game-harmonyos-arm64"
-          path: |
-            build-harmonyos-arm64/c-game-client*
-            build-harmonyos-arm64/c-game-server*
-          if-no-files-found: error
-          retention-days: 30
+  # harmonyos:
+  #   name: "HarmonyOS ARM64"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #
+  #     - name: Install dependencies
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y cmake ninja-build
+  #
+  #     - name: Build raylib
+  #       run: |
+  #         cd raylib/src
+  #         make -j4 PLATFORM_OS=LINUX CC=clang
+  #         cd ../..
+  #
+  #     - name: Configure CMake
+  #       run: |
+  #         cmake --preset harmonyos-arm64 -DCGAME_SKIP_RAYLIB_BUILD=ON
+  #
+  #     - name: Build
+  #       run: cmake --build --preset harmonyos-arm64
+  #
+  #     - name: List artifacts
+  #       run: ls -la build-harmonyos-arm64/c-game-*
+  #
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "c-game-harmonyos-arm64"
+  #         path: |
+  #           build-harmonyos-arm64/c-game-client*
+  #           build-harmonyos-arm64/c-game-server*
+  #         if-no-files-found: error
+  #         retention-days: 30
 
   # ============================================
   # Linux DRM/KMS build (ubuntu-latest)
@@ -826,10 +833,7 @@ jobs:
       - macos
       - android
       - web
-      - ios
       - windows-cross
-      - ios-theos
-      - harmonyos
       - linux-drm
     steps:
       - name: Display build summary
