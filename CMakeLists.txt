@@ -265,6 +265,8 @@ if(NOT CGAME_SKIP_RAYLIB_BUILD AND NOT CGAME_USE_EMSCRIPTEN)
             list(APPEND RAYLIB_MAKE_ARGS "PLATFORM_OS=OSX")
         elseif(CGAME_PLATFORM_ANDROID)
             list(APPEND RAYLIB_MAKE_ARGS "PLATFORM=PLATFORM_ANDROID")
+        else()
+            list(APPEND RAYLIB_MAKE_ARGS "PLATFORM_OS=LINUX")
         endif()
 
         execute_process(

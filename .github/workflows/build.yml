@@ -43,7 +43,7 @@ jobs:
             build_dir: build
             cross_cc: ""
             cross_ar: ""
-            pkgs: "build-essential cmake ninja-build"
+            pkgs: "build-essential cmake ninja-build libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev"
             raylib_platform: "PLATFORM_OS=LINUX"
             raylib_cflags: ""
             extra_flags: ""
@@ -52,7 +52,7 @@ jobs:
             build_dir: build-linux-x86
             cross_cc: ""
             cross_ar: ""
-            pkgs: "build-essential cmake ninja-build gcc-multilib"
+            pkgs: "build-essential cmake ninja-build gcc-multilib libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev"
             raylib_platform: "PLATFORM_OS=LINUX"
             raylib_cflags: "-m32"
             extra_flags: ""
@@ -97,7 +97,7 @@ jobs:
             build_dir: build-chromeos
             cross_cc: ""
             cross_ar: ""
-            pkgs: "build-essential cmake ninja-build"
+            pkgs: "build-essential cmake ninja-build libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev"
             raylib_platform: "PLATFORM_OS=LINUX"
             raylib_cflags: ""
             extra_flags: "-DCGAME_IS_CHROMEOS=ON"
@@ -132,6 +132,8 @@ jobs:
         run: |
           EXTRA_ARGS=""
           if [ -n "${{ matrix.cross_cc }}" ]; then
+            EXTRA_ARGS="-DCGAME_SKIP_RAYLIB_BUILD=ON"
+          else
             EXTRA_ARGS="-DCGAME_SKIP_RAYLIB_BUILD=ON"
           fi
           cmake --preset ${{ matrix.preset }} ${{ matrix.extra_flags }} $EXTRA_ARGS
@@ -203,7 +205,8 @@ jobs:
         run: |
           cmake --preset ${{ matrix.preset }} \
             -DCMAKE_C_COMPILER=gcc \
-            -DCMAKE_CXX_COMPILER=g++
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         shell: bash
@@ -261,7 +264,7 @@ jobs:
           fi
 
       - name: Configure CMake
-        run: cmake --preset ${{ matrix.preset }}
+        run: cmake --preset ${{ matrix.preset }} -DCGAME_SKIP_RAYLIB_BUILD=ON
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
@@ -315,14 +318,16 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install NDK
-        uses: nickelbeurle/setup-android-ndk@v3
-        with:
-          ndk-version: "27.0.12077973"
-          packages: ndk-platforms-android-24
-
-      - name: Install CMake
-        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+      - name: Install Android NDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip cmake ninja-build
+          cd /tmp
+          wget -q "https://dl.google.com/android/repository/android-ndk-r27-linux.zip"
+          unzip -q android-ndk-r27-linux.zip
+          echo "ANDROID_NDK_HOME=/tmp/android-ndk-r27" >> $GITHUB_ENV
+          echo "ANDROID_HOME=/tmp/android-ndk-r27" >> $GITHUB_ENV
+          /tmp/android-ndk-r27/ndk-build --version
 
       - name: Build raylib for Android
         run: |
