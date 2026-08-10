@@ -55,7 +55,7 @@ jobs:
             pkgs: "build-essential cmake ninja-build gcc-multilib libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev"
             raylib_platform: "PLATFORM_OS=LINUX"
             raylib_cflags: "-m32"
-            extra_flags: ""
+            extra_flags: "-DCGAME_ARCH_X86=1"
           - arch: arm64
             preset: linux-arm64
             build_dir: build-linux-arm64
@@ -109,8 +109,14 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo dpkg --add-architecture i386 || true
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.pkgs }}
+
+      - name: Install 32-bit libs (x86 only)
+        if: matrix.arch == 'x86'
+        run: |
+          sudo apt-get install -y libx11-dev:i386 libxrandr-dev:i386 libxinerama-dev:i386 libxcursor-dev:i386 libxi-dev:i386 libgl1-mesa-dev:i386 libasound2-dev:i386
 
       - name: Build raylib (cross-compile)
         if: matrix.cross_cc != ''
@@ -253,6 +259,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
+          brew untap aws/tap 2>/dev/null || true
           brew install cmake ninja
 
       - name: Build raylib
