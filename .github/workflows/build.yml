@@ -165,25 +165,14 @@ jobs:
           - arch: x64
             preset: windows-x64
             build_dir: build
-            toolchain: ""
           - arch: x86
             preset: windows-x86
             build_dir: build-win32
-            toolchain: "cmake/toolchains/windows-x86.cmake"
-          - arch: arm64
-            preset: windows-arm64
-            build_dir: build-win-arm64
-            toolchain: "cmake/toolchains/windows-arm64.cmake"
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Set up MSVC environment
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.arch == 'arm64' && 'arm64' || matrix.arch == 'x86' && 'x86' || 'x64' }}
 
       - name: Install Ninja
         shell: bash
@@ -192,6 +181,13 @@ jobs:
             pip install ninja
           fi
           ninja --version
+
+      - name: Verify MinGW toolchain
+        shell: bash
+        run: |
+          gcc --version
+          g++ --version
+          make --version
 
       - name: Build raylib
         shell: bash
@@ -204,7 +200,10 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        run: cmake --preset ${{ matrix.preset }}
+        run: |
+          cmake --preset ${{ matrix.preset }} \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_CXX_COMPILER=g++
 
       - name: Build
         shell: bash

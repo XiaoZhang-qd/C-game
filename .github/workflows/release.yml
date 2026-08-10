@@ -203,12 +203,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-      - name: Install CMake
-        uses: ilammy/setup-msbuild@v2
+      - name: Verify MinGW toolchain
+        shell: bash
+        run: |
+          gcc --version
+          g++ --version
+          make --version
       - name: Build raylib
         shell: bash
         run: |
@@ -218,7 +218,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          cmake --preset windows-x64
+          cmake --preset windows-x64 -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
           cmake --build --preset windows-x64
       - name: Package
         shell: bash
@@ -241,22 +241,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x86
-      - name: Install CMake
-        uses: ilammy/setup-msbuild@v2
+      - name: Verify MinGW toolchain
+        shell: bash
+        run: |
+          gcc --version
+          g++ --version
+          make --version
       - name: Build raylib
         shell: bash
         run: |
           if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib/src && make -j4 PLATFORM_OS=WINDOWS && cd ../..
+            cd raylib/src && make -j4 PLATFORM_OS=WINDOWS CFLAGS=-m32 && cd ../..
           fi
       - name: Build
         shell: bash
         run: |
-          cmake --preset windows-x86
+          cmake --preset windows-x86 -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
           cmake --build --preset windows-x86
       - name: Package
         shell: bash
@@ -272,43 +272,43 @@ jobs:
           path: release/windows-x86/
           retention-days: 7
 
-  build-windows-arm64:
-    name: "Windows ARM64"
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Install MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: arm64
-      - name: Install CMake
-        uses: ilammy/setup-msbuild@v2
-      - name: Build raylib
-        shell: bash
-        run: |
-          if [ ! -f raylib/src/libraylib.a ]; then
-            cd raylib/src && make -j4 PLATFORM_OS=WINDOWS && cd ../..
-          fi
-      - name: Build
-        shell: bash
-        run: |
-          cmake --preset windows-arm64
-          cmake --build --preset windows-arm64
-      - name: Package
-        shell: bash
-        run: |
-          mkdir -p release/windows-arm64
-          cp build-win-arm64/c-game-client-arm64.exe release/windows-arm64/
-          cp build-win-arm64/c-game-server-arm64.exe release/windows-arm64/
-          cp README.md release/windows-arm64/ || true
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: "windows-arm64"
-          path: release/windows-arm64/
-          retention-days: 7
+  #  build-windows-arm64:
+  #   name: "Windows ARM64"
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+  #     - name: Verify MinGW toolchain
+  #       shell: bash
+  #       run: |
+  #         gcc --version
+  #         g++ --version
+  #         make --version
+  #     - name: Build raylib
+  #       shell: bash
+  #       run: |
+  #         if [ ! -f raylib/src/libraylib.a ]; then
+  #           cd raylib/src && make -j4 PLATFORM_OS=WINDOWS && cd ../..
+  #         fi
+  #     - name: Build
+  #       shell: bash
+  #       run: |
+  #         cmake --preset windows-arm64 -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+  #         cmake --build --preset windows-arm64
+  #     - name: Package
+  #       shell: bash
+  #       run: |
+  #         mkdir -p release/windows-arm64
+  #         cp build-win-arm64/c-game-client-arm64.exe release/windows-arm64/
+  #         cp build-win-arm64/c-game-server-arm64.exe release/windows-arm64/
+  #         cp README.md release/windows-arm64/ || true
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "windows-arm64"
+  #         path: release/windows-arm64/
+  #         retention-days: 7
 
   build-macos-x64:
     name: "macOS x64"
@@ -499,7 +499,6 @@ jobs:
       - build-linux-mips64
       - build-windows-x64
       - build-windows-x86
-      - build-windows-arm64
       - build-macos-x64
       - build-macos-arm64
       - build-android
