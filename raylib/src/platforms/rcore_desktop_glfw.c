@@ -53,14 +53,14 @@
 
 // Support retrieving native window handlers
 #if defined(_WIN32)
-    // Win32 API support for WM_CLOSE interception (no windows.h to avoid symbol conflicts)
+    // HWND type may already be defined in <windows.h>, avoid redefinition conflicts
     #if !defined(HWND) && !defined(_MSVC_LANG)
         #define HWND void*
     #elif !defined(HWND) && defined(_MSVC_LANG)
         typedef struct HWND__ *HWND;
     #endif
 
-    #include "../external/win32_clipboard.h" // Clipboard image copy-paste
+    #include "../external/win32_clipboard.h"
 
     // Include clipboard implementation to get <minwindef.h> types (LONG_PTR, WPARAM, LRESULT, etc.)
     #define WIN32_CLIPBOARD_IMPLEMENTATION
